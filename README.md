@@ -22,27 +22,27 @@ Object, Array, Function
 
 ## Primitive Data Types
 Primitive data types are passed by value rather than by reference.
-**bool** A boolean value storing either `true` or `false`
-**byte** - An unsigned 8-bit integer
-**short** - A signed 16-bit integer
-**char** - An unsigned 16-bit integer that can store a Unicode character
-**int** - A signed 32-bit integer
-**uint** - An unsigned 32-bit integer
-**long** - A signed 64-bit integer
-**ulong** - An unsigned 64-bit integer
-**float** - A signed 32-bit floating point number
-**double** - A signed 64-bit floating point number
-**void** - A special primitive data type that is a placeholder for nothing.
-**null** - Similar to void, null is a special primitive data type that points to nothing. Object and Array variables that are undefined point to null.
-**string** - A special type of array of characters. Despite actually being an object, strings are treated like primitives.
-**vec** - A vector that can hold 2, 3, or 4 values
-**BigInt** - Capable of holding signed integers of arbitrarily large size
+**bool** A boolean value storing either `true` or `false`  
+**byte** - An unsigned 8-bit integer  
+**short** - A signed 16-bit integer  
+**char** - An unsigned 16-bit integer that can store a Unicode character  
+**int** - A signed 32-bit integer  
+**uint** - An unsigned 32-bit integer  
+**long** - A signed 64-bit integer  
+**ulong** - An unsigned 64-bit integer  
+**float** - A signed 32-bit floating point number  
+**double** - A signed 64-bit floating point number  
+**void** - A special primitive data type that is a placeholder for nothing.  
+**null** - Similar to void, null is a special primitive data type that points to nothing. Object and Array variables that are undefined point to null.  
+**string** - A special type of array of characters. Despite actually being an object, strings are treated like primitives.  
+**vec** - A vector that can hold 2, 3, or 4 values  
+**BigInt** - Capable of holding signed integers of arbitrarily large size  
 
 ## Non-primitive Data Types
 Non-primitive data types are passed by reference rather than value
-**Object** - The root class of all other classes and objects
-**Array** - A special type of object where each key is an integer that can be read/write using the [] operator
-**Function** - Functions are objects so that they can be treated like first class functions and be passed around by reference
+**Object** - The root class of all other classes and objects  
+**Array** - A special type of object where each key is an integer that can be read/write using the [] operator  
+**Function** - Functions are objects so that they can be treated like first class functions and be passed around by reference  
 
 ## Variables
 Variables are created in the format
@@ -72,8 +72,8 @@ Accessing a variable that hasn’t been declared throws a reference error. All v
 		let b = 4;
 		a // 3
 		b // 4
-  }
-  a // 3
+	}
+	a // 3
 	b // 2
 }
 a // throws reference error
@@ -105,10 +105,10 @@ class Animal {
 		name = n; // define object properties
 		getName(); // call methods
 		this.getName(); // properties/methods can also be accessed using the `this` keyword
-  }
-  string getName() { // methods
-    return this.name;
-  }
+	}
+	string getName() { // methods
+		return this.name;
+	}
 }
 ```
 Multiple inheritance is supported. If a class has two parent classes with the same property/method it will inherit from the last parent. When creating properties without a type in a class the `let` is excluded.
@@ -208,7 +208,7 @@ class Foo {
 	enum { d, e, f }
 	Foo() {
 		this.d // 
-  }
+	}
 }
 Foo.a // 1
 Foo.b // 2
@@ -254,17 +254,17 @@ int[][] = new int[](3, 4);
 // And 3D arrays
 int[][][] = [
 	[
-    [1],
-    [2],
-  ],
-  [
-    [3],
-    [4],
-  ],
-  [
-    [5],
-    [6],
-  ],
+		[1],
+		[2],
+	],
+	[
+		[3],
+		[4],
+	],
+	[
+		[5],
+		[6],
+	],
 ];
 int[][][] = new int[](3, 2, 1);
 ```
