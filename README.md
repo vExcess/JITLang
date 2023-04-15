@@ -15,7 +15,7 @@ JitLang source code are stored as “.jitl” files synonymous with “.java” 
 
 ## Special Words
 ### Keywords
-let, const, if, else, do, while, for, struct, class, private, static, super, extends, inherit, enum, try, catch, throw, return, switch, case, default, break, continue, func, new, this, true, false, Infinity, import, export, from, as
+let, const, if, else, do, while, for, struct, class, private, static, super, extends, inherit, enum, try, catch, throw, return, switch, case, default, break, continue, func, new, this, true, false, Infinity, import, export, from, as, async, await
 ### Built in data types
 bool, byte, short, char, int, uint, long, ulong, float, double, void, null, string, vec, BigInt
 Object, Array, Function
@@ -264,7 +264,7 @@ int[][][] = [
 ];
 int[][][] = new int[](3, 2, 1);
 ```
-To access an item in an array use `arr[index]` (eg: arr[0]). This same syntax is used when writing to an index in an array `arr[index] = 0;`. Indices start at zero. Accessing an index that is less than 0 or greater than the length of the array will throw a reference error. To access the length of the array use `arr.length` which returns the number of items in the array. If you need to grow or shrink the array use `arr.size(newLength);` method which will resize the array to the specified size. If the array is shrunk all the clipped off data is lost. If grown the array’s added indices will follow the pattern specified at the arrays initilization. To take a slice of an array you can use the slice method `arr.slice(0, 10)` or use the bracket notation` arr[0:10]`. If the first number is unspecified (eg: `arr[:10]`) then it is 0, if the second number is unspecified (eg: `arr.slice(0)` or `arr[0:]`) then it is the length of the array. If no parameters are specified (eg: `arr[:]` or `arr.slice()`) then it shallow clones the entire array. If you do not have a colon inside of the bracket notation like so `arr[]` then it is a syntax error.
+To access an item in an array use `arr[index]` (eg: arr[0]). This same syntax is used when writing to an index in an array `arr[index] = 0;`. Indices start at zero. Accessing an index that is less than 0 or greater than the length of the array will throw a reference error. To access the length of the array use `arr.length` which returns the number of items in the array. If you need to grow or shrink the array use `arr.size(newLength);` method which will resize the array to the specified size. If the array is shrunk all the clipped off data is lost. If grown the array’s added indices will follow the pattern specified at the arrays initilization. To take a slice of an array you can use the slice method `arr.slice(0, 10)` or use the bracket notation` arr[0:10]`. If the first number is unspecified (eg: `arr[:10]`) then it is 0, if the second number is unspecified (eg: `arr.slice(0)` or `arr[0:]`) then it is the length of the array. If no parameters are specified (eg: `arr[:]` or `arr.slice()`) then it shallow clones the entire array. If you do not have a colon inside of the bracket notation like so `arr[]` then it is a syntax error. No characters (including spaces) are allowed between the array's identifier and the open bracket.
 
 Other array methods:
 Array.push - `arr.push(123)` is functionally equivelant to `arr.grow(arr.length+1); arr[arr.length-1] = 123;`. You can also push multiple elements at the same time `arr.push(123, 456)`
@@ -312,7 +312,82 @@ Function f = int() {} // explicit
 let f = int A => B
 let f = int (A) => {B}
 ```
-Function declarations are hoisted while function expressions are not. Arrow functions are simply shorthand for function expressions. Methods are a special type of function that only exist as properites of a class. They are different because they have a `this` keyword available to them that refers to the object the method is being called on. Normal functions do not have the `this` keyword.
+Function declarations are hoisted while function expressions are not. Arrow functions are simply shorthand for function expressions. Methods are a special type of function that only exist as properites of a class. They are different because they have a `this` keyword available to them that refers to the object the method is being called on. Normal functions do not have the `this` keyword. A function is called with its identifier followed by immediately by parenthesis. No characters (including spaces) are allowed between the functions's identifier and the open parenthesis. The arguments for the function and entered between the parenethesis seperated by commas.
+```
+myFunction(1, 2, 3);
+```
+
+### Returning from a function
+The `return` keyword is used to return a value from a function. When the return keyword is encountered the function returns the expression that is after it and exits the function. If there is not expression after it then it returns void;
+```
+func thing() {
+	println(1);
+	return 2;
+	println(3); // this code is unreachable and will throw a compiler warning
+}
+println("got " + thing());
+/*
+1
+got 2
+*/
+```
+Any code after a return statement that is unreachable will throw a compiler warning. Note that if a value is on the line after the return statement it still gets returned
+```
+() => {
+	return 
+	1;
+}
+// is equivelant to
+() => {
+	return 1;
+}
+```
+
+### async/await
+the `async` keyword modifies a function making it run asyncronously.
+```
+async func myFunc() {
+	println(1);
+}
+myFunc();
+println(2);
+// console output:
+/*
+2
+1
+*/
+```
+the `await` keyword can be used when calling a function to make the process wait for the asyncronous function to finish executing before continuing. The await keyword cannot be used the top level scope, it can only be used inside of other async functions.
+```
+async func myFunc() {
+	println(1);
+}
+(async () {
+	await myFunc();
+	println(2);
+})()
+// console output:
+/*
+1
+2
+*/
+```
+async functions can be chained together using the `.then` property. The `then` method takes one function as an argument. This one function also has one parameter which gets the value returned from the original async function.
+```
+async func myFunc() {
+	println(1);
+	return 2;
+}
+
+myFunc().then(res => {
+	println(res);
+})
+// console output:
+/*
+1
+2
+*/
+```
 
 ## Loops
 A while loop continues until the condition is met. They are declared like so
@@ -356,3 +431,321 @@ for (let i = 0, j = 10; i < j; i++) {
 	}
 }
 ```
+Some more syntactical sugar is the `for in` loop
+```
+for (let prop in thing) {
+	
+}
+// if arr is an Array then the above for in loop is functionally equivelant to the following loop
+{
+	let thingCache = thing;
+	for (let i = 0; i < thingCache.length; i++) {
+		{
+			let prop = i;
+			println(index);
+		}
+	}
+}
+// if thing is an Object then it is functionally equivelant to
+{
+	let keysCache = Object.keys(thing);
+	for (let i = 0; i < keysCache.length; i++) {
+		{
+			let prop = keysCache[i];
+			println(index);
+		}
+	}
+}
+```
+The `for of` loop is almost identical to the `for in` loop, except that it gives the user the item in the Array/Object rather than the index/key
+```
+for (let prop of thing) {
+	
+}
+// if arr is an Array then the above for in loop is functionally equivelant to the following loop
+{
+	let thingCache = thing;
+	for (let i = 0; i < thingCache.length; i++) {
+		{
+			let prop = thingCache[i];
+			println(index);
+		}
+	}
+}
+// if thing is an Object then it is functionally equivelant to
+{
+	let thingCache = thing, keysCache = Object.keys(thing);
+	for (let i = 0; i < keysCache.length; i++) {
+		{
+			let prop = thingCache[keysCache[i]];
+			println(index);
+		}
+	}
+}
+```
+You can leave out the braces on a loop and as a result only the first expression following the loop is considered part of its body
+```
+while (i < 10)
+	i++;
+	j++;
+// because the above loop doesn't have braces it is equivelant to
+while (i < 10) {
+	i++;
+}
+j++;
+```
+In the case of do/while loops the braces are required and cannot be left out. Note: because strings are actually Arrays you can loop over them too.
+
+### Control flow in loops
+**break**  the break keyword exits the innermost loop that it is called in. If the loop that is exited is inside a parent loop then the parent loop will continue to iterate.
+```
+for (let i = 0; i < 5; i++) {
+	if (i == 2) break;
+	println(i);
+}
+/*
+0
+1
+**/
+```
+**continue** the continue keyword skips to the end of the loops iteration
+```
+for (let i = 0; i < 5; i++) {
+	if (i == 2) continue;
+	println(i);
+}
+/*
+0
+1
+3
+4
+**/
+```
+
+### Labels
+Labels provide functionality somewhat similiar to goto statements. A label is any identifier that is not a reserved word followed by a colon (eg: `label:`). The label is then attached to the following statement. The `break` keyword can be used followed by the name of the label to exit the statement that the label is attached to
+```
+myLabel: {
+	println(1);
+	break myLabel;
+	println(2);
+}
+println(3);
+/*
+1
+3
+*/
+```
+the `continue` keyword works similarily but can only be used with loop statements
+```
+myLabel: for (let i = 0; i < 3; i++) {
+	for (let j = 100; j > 0; j--) {
+		if (j == 98) continue myLabel;
+        	println(i + " " + j);
+	}
+}
+/*
+0 100
+0 99
+1 100
+1 99
+2 100
+2 99
+*/
+```
+Labels can only be applied to statements and not declarations
+```
+// !!!SYNTAX ERROR!!!
+myLabel: func() {}
+```
+
+## if, else/if, else, and switch statements
+An `if` statement is declared with the following syntax
+```
+if (condition) {
+	doStuff();
+}
+```
+just like loops if the braces are exluded then only the immediate following command is attached
+```
+if (condition) doStuff() doMoreStuff();
+// is the same as
+if (condition) {
+	doStuff();
+}
+doMoreStuff();
+```
+`else if` can be chained onto an `if` statment like so
+```
+if (a) { doStuff() } else if (b) { doOtherStuff() }
+```
+The else if statement will only be evalated and ran if the first if statement's condition evaluates to false. The else statement also works the same except that it doesn't have a condition and therefore is always executed
+```
+if (a) {
+	println("a is true")
+} else if (b) {
+	println("a is false and b is true")
+} else {
+	println("a is false and b is false")
+}
+```
+A lack of brackets can cause ambiguity. For example
+```
+// Does the else belong to the inner or outer if statement?
+if (a)
+if (b) doStuff()
+else doOtherStuff()
+
+// the answer is that like other C-based languages the else statement belongs to the innermost if statment so the above is equivelant to 
+if (a) {
+	if (b) {
+		doStuff()
+	} else {
+		doOtherStuff()
+	}
+}
+```
+Not that without brackets only a statement can be inside the if statement not a declaration.
+```
+// !!!ERROR!!!
+if (a) let b = 1;
+// !!!ERROR!!!
+if (a) func myFunc() {}
+
+// OK
+let b;
+if (a) b = 1;
+
+// OK
+let b;
+if (a) b = func myFunc() {}
+```
+
+### switch statment
+Chaining many if statements together can be tedious and messy. Therefore the switch statement is provided which is written as follows. 
+```
+switch (myValue) {
+	case 1:
+		println("myValue equals 1");
+		return;
+	case 2:
+		println("myValue equals 2");
+		return;
+	default:
+		println("myValue was neither 1 nor 2");
+		return;
+}
+```
+The switch statement starts at the top case and if the provided value matches the value following the `case` keyword then it evaluates the code following it. If the code after the case returns then the switch statement is exited and no further conditions are evaluated. However if there is no return statement then it falls through and checks the next case. To demonstrate this idea
+```
+switch (1) {
+	case 1:
+		println("1");
+		return;
+	case 2:
+		println("2");
+		return;
+	default:
+		println("any");
+		return;
+}
+// the above switch statement prints:
+/*
+1
+*/
+
+// in constrast
+switch (1) {
+	case 1:
+		println("1");
+	case 2:
+		println("2");
+	default:
+		println("any");
+}
+// the above switch statement prints:
+/*
+1
+any
+*/
+```
+Unlike most language which use `break` JITLang only uses `return` with switch statements. Switch statements also return a value and return void if not value is returned
+```
+let res = switch (2) {
+	case 1:
+		return "a";
+	case 2:
+		return "b";
+};
+println(res); // prints "b"
+```
+All variables declared inside of a switch statement are in the same scope
+```
+// !!!SYNTAX ERROR!!! test has already been declared
+switch (val) {
+	case 1:
+		let test = 1;
+		return;
+	case 2:
+		let test = 2;
+		return;
+}
+// the above is a syntax error however you can give each case its own scope like so
+switch (val) {
+	case 1: {
+		let test = 1;
+		return;
+	}
+	case 2: {
+		let test = 2; // YAY! this is no longer an error
+		return;
+	}
+}
+```
+
+## Throwing and catching errors
+### throw keyword
+Errors can be throw using the `throw` keyword. The value thrown must be a string. If the value is an Object then it will have its toString method run and if it lacks a toString method then it will be stringified. If you throw a value that is not a string or Object then it will be cast to a string.
+```
+throw "ono";
+// console output will be
+/*
+ono
+*/
+
+throw {
+	message: "ono",
+	lineNumber: 12
+};
+// console output will be
+/*
+{
+	message: "ono",
+	lineNumber: 12
+}
+*/
+
+throw {
+	message: "ono",
+	lineNumber: 12,
+	toString: () => {
+		return "HELLO";
+	}
+};
+// console output will be
+/*
+HELLO
+*/
+```
+
+### try/catch statement
+A try/catch statement can be used to catch errors and handle them according to the programmers discression. If an error happens inside the try statement then the code inside the catch statement is run
+```
+try {
+	throw "ERROR!";
+} catch (err) {
+	println("Caught: " + err);
+}
+// console output: "Caught: ERROR!"
+```
+Unlike loops and if statements a try/catch statement must have braces. Also only one parameter allowed inside the parenthesis of the catch statement. If a error is not caught then it will crash the program, however if it is caught then it program will not crash.
