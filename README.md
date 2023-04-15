@@ -85,13 +85,9 @@ Having to memorize various different casting rules can be a big pain and manuall
 
 Important rules to note is that false and 0 get cast to each other, true and 1 get cast to each other.
 JITLangs implicit casting rules are pretty common sense.
-You can also use explicit casts. Both a Java-like syntax and a functional syntax for casting are allowed.
+The syntax for casting is:
 ```
-int foo = (long) bar;
-```
-Or you can also use functional syntax
-```
-int foo = long(bar);
+int foo = <long> bar;
 ```
 
 ## Classes
@@ -318,3 +314,45 @@ let f = int (A) => {B}
 ```
 Function declarations are hoisted while function expressions are not. Arrow functions are simply shorthand for function expressions. Methods are a special type of function that only exist as properites of a class. They are different because they have a `this` keyword available to them that refers to the object the method is being called on. Normal functions do not have the `this` keyword.
 
+## Loops
+A while loop continues until the condition is met. They are declared like so
+```
+let i = 0;
+while (i < 10) {
+	i++;
+}
+```
+A variation of the while loop is the do/while loop. The difference is that the the do block is executed once before the condition is evalated compared to a normal while loop where the body is executed only after the condition has been evaluated.
+```
+let i = 0;
+do {
+	stuff();
+	i++;
+} while (i < 10);
+// is functionally equivelant to
+let i = 0;
+stuff();
+i++;
+while (i < 10) {
+	stuff();
+	i++;
+}
+```
+A for loop is just syntactical sugar for a while loop written with the following syntax `for (expression1; expression2; expression3) {`  
+Expression 1 is executed (one time) before the execution of the code block.  
+Expression 2 defines the condition for executing the code block.  
+Expression 3 is executed (every time) after the code block has been executed.  
+Each expression can be left blank like so `for (;;) {` however if expression 2 is left blank then it always evaluates to false resulting in an infinite loop
+```
+for (let i = 0, j = 10; i < j; i++) {
+	doStuff();
+}
+// the above for loop is functionally equivelant to the following while loop
+{
+	let i = 0, j = 10;
+	while (i < j) {
+		doStuff();
+		i++;
+	}
+}
+```
