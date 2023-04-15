@@ -21,7 +21,7 @@ bool, byte, short, char, int, uint, long, ulong, float, double, void, null, stri
 Object, Array, Function
 
 ## Primitive Data Types
-Primitive data types are passed by value rather than by reference.
+Primitive data types are passed by value rather than by reference.  
 **bool** A boolean value storing either `true` or `false`  
 **byte** - An unsigned 8-bit integer  
 **short** - A signed 16-bit integer  
@@ -39,7 +39,7 @@ Primitive data types are passed by value rather than by reference.
 **BigInt** - Capable of holding signed integers of arbitrarily large size  
 
 ## Non-primitive Data Types
-Non-primitive data types are passed by reference rather than value
+Non-primitive data types are passed by reference rather than value  
 **Object** - The root class of all other classes and objects  
 **Array** - A special type of object where each key is an integer that can be read/write using the [] operator  
 **Function** - Functions are objects so that they can be treated like first class functions and be passed around by reference  
