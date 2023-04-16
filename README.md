@@ -18,14 +18,14 @@ JitLang source code are stored as “.jitl” files synonymous with “.java” 
 let, const, if, else, do, while, for, struct, class, private, static, super, extends, inherit, enum, try, catch, throw, return, switch, case, default, break, continue, func, new, this, true, false, Infinity, import, export, from, as, async, await
 ### Built in data types
 bool, byte, short, char, int, uint, long, ulong, float, double, void, null, string, vec, BigInt
-Object, Array, Function
+Object, Array, Function, String
 
 ## Primitive Data Types
 Primitive data types are passed by value rather than by reference.  
 **bool** A boolean value storing either `true` or `false`  
 **byte** - An unsigned 8-bit integer  
 **short** - A signed 16-bit integer  
-**char** - An unsigned 16-bit integer that can store a Unicode character  
+**char** - An unsigned 16-bit integer that stores represents a Unicode character  
 **int** - A signed 32-bit integer  
 **uint** - An unsigned 32-bit integer  
 **long** - A signed 64-bit integer  
@@ -33,7 +33,7 @@ Primitive data types are passed by value rather than by reference.
 **float** - A signed 32-bit floating point number  
 **double** - A signed 64-bit floating point number  
 **void** - A special primitive data type that is a placeholder for nothing.  
-**null** - Similar to void, null is a special primitive data type that points to nothing. Object and Array variables that are undefined point to null.  
+**null** - Similar to void, null is a special primitive data type that points to nothing. Object, Array, and String variables that are undefined point to null.  
 **string** - A special type of array of characters. Despite actually being an object, strings are treated like primitives.  
 **vec** - A vector that can hold 2, 3, or 4 values  
 **BigInt** - Capable of holding signed integers of arbitrarily large size  
@@ -43,6 +43,7 @@ Non-primitive data types are passed by reference rather than value
 **Object** - The root class of all other classes and objects  
 **Array** - A special type of object where each key is an integer that can be read/write using the [] operator  
 **Function** - Functions are objects so that they can be treated like first class functions and be passed around by reference  
+**String** - Strings are just an object version of the primitive string data type  
 
 ## Variables
 Variables are created in the format
@@ -83,12 +84,18 @@ b // throws reference error
 ## Casting
 Having to memorize various different casting rules can be a big pain and manually needing to cast each parameter going into an operation is both tedious and makes for long code. One of the great features about JavaScript is that anything can be cast to anything else. Similarly, JITLang will attempt to implicitly cast any piece of data to the needed type for you.
 
-Important rules to note is that false and 0 get cast to each other, true and 1 get cast to each other.
-JITLangs implicit casting rules are pretty common sense.
 The syntax for casting is:
 ```
 int foo = <long> bar;
 ```
+JITLangs implicit casting rules are very simple. All numbers can be cast to any other type of number. When operating on two numbers JITLang will promote the operand of a lesser type to the other operand's type in order to prevent data loss. For example if you multiply an int by a float it will automatically cast the int to a float before perfoming the operation.
+
+### Number Casting Rules
+- 1)  If one operand's type can store decimal values and the other operand's type cannot then the operand that cannot is promoted to the type of the one that can
+- 2)  If no promotion occured in rule 1: if one operand is signed and the other isn't the unsigned one is cast to the type of the signed number.
+- 3)  If no promotion occured in either rule 1 or rule 2: if one operand's type has less bits than the other, it is cast to the type that has more bits
+
+If concatenating a char onto a string, the char will automatically be cast to a string. 
 
 ## Classes
 Classes are created in the following format
@@ -233,7 +240,7 @@ int[] arr = float[3];
 Array arr = new int[](3);
 Array arr = new float[](3);
 
-// Object can store any type of object including arrays
+// Object can store any type of object including arrays, functions, and strings
 Object arr = new int[](3);
 Object arr = new float[](3);
 
@@ -264,14 +271,14 @@ int[][][] = [
 ];
 int[][][] = new int[](3, 2, 1);
 ```
-To access an item in an array use `arr[index]` (eg: arr[0]). This same syntax is used when writing to an index in an array `arr[index] = 0;`. Indices start at zero. Accessing an index that is less than 0 or greater than the length of the array will throw a reference error. To access the length of the array use `arr.length` which returns the number of items in the array. If you need to grow or shrink the array use `arr.size(newLength);` method which will resize the array to the specified size. If the array is shrunk all the clipped off data is lost. If grown the array’s added indices will follow the pattern specified at the arrays initilization. To take a slice of an array you can use the slice method `arr.slice(0, 10)` or use the bracket notation` arr[0:10]`. If the first number is unspecified (eg: `arr[:10]`) then it is 0, if the second number is unspecified (eg: `arr.slice(0)` or `arr[0:]`) then it is the length of the array. If no parameters are specified (eg: `arr[:]` or `arr.slice()`) then it shallow clones the entire array. If you do not have a colon inside of the bracket notation like so `arr[]` then it is a syntax error. No characters (including spaces) are allowed between the array's identifier and the open bracket.
+To access an item in an array use `arr[index]` (eg: arr[0]). This same syntax is used when writing to an index in an array `arr[index] = 0;`. Indices start at zero. Accessing an index that is less than 0 or greater than the length of the array will throw a reference error. To access the length of the array use the readonly length property `arr.length` which returns the number of items in the array. If you need to grow or shrink the array use `arr.size(newLength);` method which will resize the array to the specified size. If the array is shrunk all the clipped off data is lost. If grown the array’s added indices will follow the pattern specified at the arrays initilization. To take a slice of an array you can use the slice method `arr.slice(0, 10)` or use the bracket notation` arr[0:10]`. If the first number is unspecified (eg: `arr[:10]`) then it is 0, if the second number is unspecified (eg: `arr.slice(0)` or `arr[0:]`) then it is the length of the array. If no parameters are specified (eg: `arr[:]` or `arr.slice()`) then it shallow clones the entire array. If you do not have a colon inside of the bracket notation like so `arr[]` then it is a syntax error. No characters (including spaces) are allowed between the array's identifier and the open bracket.
 
-Other array methods:
+Array methods:
 Array.push - `arr.push(123)` is functionally equivelant to `arr.grow(arr.length+1); arr[arr.length-1] = 123;`. You can also push multiple elements at the same time `arr.push(123, 456)`
 
 Array.pop - `arr.pop(0)` removes an item from an array at a specified index. The following elements are then shifted left to take its place and any remaining places are set to null. Multiple items can be popped from an array at the same time `arr.pop(0, 1, 2)`
 
-Array.includes - `arr.includes(123)` returns a true or false depending on whether the array includes the given item
+Array.contains - `arr.contains(123)` returns a true or false depending on whether the array contains the given item
 
 Array.indexOf - `arr.indexOf(123)` returns the index of an item in an array. Returns -1 if the item is not included.
 
@@ -749,3 +756,151 @@ try {
 // console output: "Caught: ERROR!"
 ```
 Unlike loops and if statements a try/catch statement must have braces. Also only one parameter allowed inside the parenthesis of the catch statement. If a error is not caught then it will crash the program, however if it is caught then it program will not crash.
+
+## strings and Strings
+`string`s are special char[] Arrays. However despite being objects they act like primitive data types and are passed around by value rather than reference. But despite acting like primitives they have properties and methods like an object. On the contrast `String`s (with a capital S) are objects. They function the same as primitive strings except that they are passed around by reference rather than value. Because strings and Strings are Arrays individual characters can be read and written to using the [] operator. 
+```
+let str = "123", str2 = "123";
+let strObj = new String("123"), strObj2 = new String("123");
+
+str == str2 // true because since string is primitive it compares each value
+strObj == strObj2 // false because even though they contain the same characters they are not the exact same object.
+
+let str = "123", 
+    str2 = str;
+str2 += "a";
+println(str); // 123
+println(str2); // 123a
+
+let str = new String("123"), 
+    str2 = str;
+str2 += "a";
+println(str); // 123a
+println(str2); // 123a
+```
+Just like arrays, use the `.length` property to read the length of the string. Strings inherit all of Array's methods however it also has added methods and some methods are redefined.
+
+### string/String methods:
+String.charAt - `"A".charAt(0)` -> `'A'` returns returns the character at a given index. Is functionally equivelant to `"A"[0]`
+
+String.charCodeAt - `"A".charCodeAt(0)` -> `65` returns the ASCII value of the of the character as a certain index
+
+String.startsWith - `"Abc".startsWith("Ab")` -> `true` returns whether the beginning characters of the string match the given string
+
+String.endsWith - `"Abc".endsWith("bc")` -> `true` returns whether the last characters of the string match the given string
+
+String.contains - `"Abc".contains("bc")` -> `true` returns whether the string contains the given string
+
+String.indexOf - `"Abc".indexOf("bc")` -> `1` returns the index of the given string inside of the original string. Returns -1 if the string doesn't contain the given string
+
+String.padStart - `"0".padStart(3, '1')` -> `"110"` takes two arguments. The first is a number which is the new length of the string. The second is the character to pad with. If no character is specified then a space character (' ') is used. It then pads the beginning of the string with the character until it reaches the specified length.
+
+String.padEnd - `"0".padEnd(3, '1')` -> `"011"` takes two arguments. The first is a number which is the new length of the string. The second is the character to pad with. If no character is specified then a space character (' ') is used. It then pads the end of the string with the character until it reaches the specified length.
+
+String.repeat - `"ab_".repeat(3)` -> `"ab_ab_ab_"` copies the string onto itself a given number of times
+
+String.replace - `"caat".replace("a", 'b')` -> `"cbat"` replaces the first instance of a string with a new string. If no replacement string is specified it is replaced with an empty string "". `"caat".replace("a")` -> `"cat:`
+
+String.replaceAll - `"caat".replaceAll("a", 'b')` -> `"cbbt"` functions the same as String.replace except it replaces every instance of the given string with the replacement string. Note: The method only does one scan through the loop so `"abab".replaceAll("a", "ab")` results in `abbabb` rather than an infinite loop.
+
+String.split - `"aa_bb_cc".split("_")` -> `["aa", "bb", "cc"]` splits the string into an array of substrings and returns the array. It splits the string at every instance of a specified character/string and if no parameter is given then an empty string is used resulting in the string being split at each character.
+
+String.toUpperCase - `"abc".toUpperCase()` -> `"ABC"` converts each character in the string to its upper case equivelant
+
+String.toLowerCase - `"ABC".toLowerCase()` -> `"abc"` converts each character in the string to its lower case equivelant
+
+String.trim - `"   abc   ".trim()` -> `"abc"` removes all whitespace characters from both ends of the string
+
+String.trimStart - `"   abc   ".trimStart()` -> `"abc   "` removes all whitespace characters from the start of the string
+
+String.trimEnd - `"   abc   ".trimEnd()` -> `"   abc"` removes all whitespace characters from the end of the string
+
+String.equals - `new String("abc").equals(new String("abc"))` -> `true` returns whether or not all the characters in the original and given string/String are identical
+
+### String static methods
+String.fromCharCode - `String.fromCharCode(65)` -> `"A"` converts an ASCII value into a string if the argument is a number. If the argument given is an array then it goes through the array converting each item to a string and then joins the result. `String.fromCharCode([65, 66, 67])` -> `"ABC"`
+
+### creating chars/strings/Strings
+Single quotes ('') are used for creating a char not a string. Putting more than one character between two single quotes is a syntax error. Also chars do not have any methods as they are a primitive data type. For many functions and operations if you try using a char as a string then JITLang will automatically convert the char into a string. Double Quotes ("") are used for creating a primitive string. To get an Object String you need to use the String constructor. Backticks are used to declare template literals. Template literals are strings, but they have special behavior at declaration time allowing them to have multiple lines and interpolate data. Data is interpolated by escaping the string with `${value}` and you can insert a value or identifier between the curly braces.
+
+```
+char c = 'a'; // this is not a string
+string s = "a"; // this is a primitive string
+String s = new String("a"); // this is an object string
+let b = "TEST";
+string s = `this
+is a ${b}
+multi-line string!`; // "this\nis a TEST\nmulti-line string!"
+```
+
+### escaping in strings
+You can escape characters in a string by placing a backslash (\) behind it. Escaping can be used to have quotes or backticks inside of a string without closing it.
+```
+"he said \"blah blah\" on wednesday"
+`he said \`blah blah\` on wednesday`
+`\${test}` // this is equal to "${test}" because the '$' character was escaped
+```
+Most characters when escaped are themselves however there are special escape characters
+"\n" -> line feed  
+"\t" -> tab  
+"\r" -> carriage return  
+"\f" -> form feed  
+"\b" -> backspace character  
+If you want to have backslashes in your string you need to escape the backslash
+```
+// prints out a single backslash becuase the first one escapes the second one
+println("\\");
+```
+Other special escape sequences are for representing non-ASCII characters in a string. You can use hexadecimal or unicode escape sequences. Hexadecimal escape sequences start with "\x" which is followed with exactly 2 hexadecimal characters. If the hexidecimal for your character is only one character long it must be padded with a leading 0. Unicode escape sequences start with "\u" which is followed with exactly 4 hexadecimal characters. If the hexidecimal for your character is less than 4 characters long it must be padded with leading zeros. The hexidecimal characters in the escape sequence are case insensitive ("A" and "a" are the same).
+```
+"\xA9" // ©
+"\u00A9 // ©
+```
+
+### arithmetic operators
+`+` add two numbers or concatenate strings
+`-` substract two numbers
+`*` multiply two numbers
+`/` divide two numbers
+`**` raise one number to the power of another
+`%` modulus (the remainder from division)
+
+### assignment operators
+`++` increment a number variable by 1
+`--` decrement a number variable by 1
+`=` assignment operator (assigns a value to a variable)
+`+=` increments a number variable by a given amount
+`-=` decrements a number variable by a given amount
+`*=` multiplies a number variable by a given amount
+`/=` divides a number variable by a given amount
+`%=` sets number variable to itself modulus given amount
+`**=` sets number variable to itself to the power of given amount
+
+### comparison operators
+`==` equality operator (checks if two values are strictly equal)
+`!=` inequality operator (checks if two values are not equal)
+`>` greater than operator (checks if one number is greater than another)
+`<` less than operator (checks if one number is less than another)
+`>=` greater than or equal to operator (checks if one number is greater than or equal to another)
+`<=` less than or equal to operator (checks if one number is less than or equal to another)
+`? : ` ternary operator (basically a shorthand if statement that returns a value)
+
+### logical operators
+`&&` checks if one boolean and another boolean are both true
+`||` check if one boolean, another boolean, or both is true
+`!` check if one boolean is not true
+
+### bitwise operators
+bitwise operators convert their operands into 32 bit integers and then the operation is performed on each pair of bits
+`&` bitwise AND
+`|` bitwise OR
+`~` bitwise NOT
+`^` bitwise XOR (exclusive or aka ((A || B) && !(A && B)))
+`<<` left bit shift (shifts the bits of the number left. Bits do not wrap aka are discarded and empty bits are 0)
+`>>` right bit shift (shifts the bits of the number right. Bits do not wrap aka are discarded and empty bits are 0)
+`>>>` unsigned right bit shift (The sign bit is set to 0. shifts the bits of the number right. Bits do not wrap aka are discarded and empty bits are 0)
+
+### bracket operators
+`[val]` The bracket operator is used to access arrays `arr[number]` (see Arrays section). It is also can be used to access properties of an object `obj[string]`. It is also used to create arrays `type[] = new int[](number);`
+`.val` The dot operator is used to access properties of an object `obj.prop`
+`<type>` casting operator explicitly casts a value to a new type
