@@ -91,11 +91,22 @@ int foo = <long> bar;
 JITLangs implicit casting rules are very simple. All numbers can be cast to any other type of number. When operating on two numbers JITLang will promote the operand of a lesser type to the other operand's type in order to prevent data loss. For example if you multiply an int by a float it will automatically cast the int to a float before perfoming the operation.
 
 ### Number Casting Rules
-- 1)  If one operand's type can store decimal values and the other operand's type cannot then the operand that cannot is promoted to the type of the one that can
-- 2)  If no promotion occured in rule 1: if one operand is signed and the other isn't the unsigned one is cast to the type of the signed number.
-- 3)  If no promotion occured in either rule 1 or rule 2: if one operand's type has less bits than the other, it is cast to the type that has more bits
+1)  If one operand's type can store decimal values and the other operand's type cannot then the operand that cannot is promoted to the type of the one that can
+2)  If no promotion occured in rule 1: if one operand is signed and the other isn't the unsigned one is cast to the type of the signed number.
+3)  If no promotion occured in either rule 1 or rule 2: if one operand's type has less bits than the other, it is cast to the type that has more bits
 
-If concatenating a char onto a string, the char will automatically be cast to a string. 
+### String Casting Rules
+- If concatenating a char and a string, the char will automatically be cast to a string.
+- If casting a string to a char, the result will be the first character in the string.
+- When any number is being cast to a string the result will be the decimal text of the number (eg: `<string>(65)` -> `"65"`). The exception to this is the char number type. When chars are cast to a string they form a single character long string where the character is based on the ASCII value of the char. Essentially `<string>(myChar)` is equivelant to `String.fromCharCode(myChar)` (eg: `<string>(<char> 65)` -> `"A"`)
+
+### Literal Casting Rules
+Any number literals are a double if it has decimal points, or is an int if there are no decimal points.
+```
+let num = 1; // num is an int
+let num = 1.0; // num is a double
+let num = 1.; // also a double; trailing decimals are allowed
+```
 
 ## Classes
 Classes are created in the following format
@@ -301,25 +312,18 @@ Array.sort - `arr.sort((a, b) => return a - b)` if the items are numbers and no 
 ## Functions
 Functions are declared using the following syntaxes.
 ```
-// function expression
-let f = func() {}
+// untyped functions (they can return any type)
+func f(a, b) {return a + b} // function declaration
+let f = func(a, b) {return a + b}; // function expression
+let f = (a, b) => a + b; // arrow function expression without curly brackets
+Function f = (a, b) => {a + b}; // variable is explicitly a function; arrow function with curly brackets
 
-// function declaration
-func f() {}
-
-// arrow function expression
-let f = A => B
-
-// arrow function expression with parenthesis and brackets
-let f = (A, B) => {}
-
-// typed functions
-let f = int() {} // auto detect
-Function f = int() {} // explicit
-let f = int A => B
-let f = int (A) => {B}
+// typed functions (they can only return floats)
+let f = float (float a, float b) {return a + b};
+let f = float (float a, float b) => a + b;
+float f(float a, float b) {return a + b}
 ```
-Function declarations are hoisted while function expressions are not. Arrow functions are simply shorthand for function expressions. Methods are a special type of function that only exist as properites of a class. They are different because they have a `this` keyword available to them that refers to the object the method is being called on. Normal functions do not have the `this` keyword. A function is called with its identifier followed by immediately by parenthesis. No characters (including spaces) are allowed between the functions's identifier and the open parenthesis. The arguments for the function and entered between the parenethesis seperated by commas.
+Function declarations are hoisted while function expressions are not. Arrow functions are like function expressions except that they cannot be used as methods or constructors. Additionally if the body of an arrow function is a singular expression the result of the expression is returned from the function. Methods are a special type of function that only exist as properties of a class. They are different because they have a `this` keyword available to them that refers to the object the method is being called on. Normal functions do not have the `this` keyword. A function is called with its identifier followed by immediately by parenthesis. No characters (including spaces) are allowed between the functions's identifier and the open parenthesis. The arguments for the function are entered between the parenethesis seperated by commas.
 ```
 myFunction(1, 2, 3);
 ```
