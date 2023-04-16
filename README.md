@@ -1,6 +1,9 @@
 # JITLang
 A Just In Time compiled language that aims to be JavaScript the way JavaScript should have been designed.
-The language combines features from lower level languages and higher level languages together to get a hybrid language.
+The language combines features from both lower level and higher level languages. For example JITLang is both dynamically and statically typed.
+
+## Feedback Appreciated
+If you find any discrepancies or vague cases in my specification please let me know so that I can fix them.
 
 ## Notes:
   - The language is FAR from being complete. It's just barely a usable language at the moment.
@@ -313,17 +316,17 @@ Array.sort - `arr.sort((a, b) => return a - b)` if the items are numbers and no 
 Functions are declared using the following syntaxes.
 ```
 // untyped functions (they can return any type)
-func f(a, b) {return a + b} // function declaration
-let f = func(a, b) {return a + b}; // function expression
-let f = (a, b) => a + b; // arrow function expression without curly brackets
-Function f = (a, b) => {a + b}; // variable is explicitly a function; arrow function with curly brackets
+f(a, b) -> {return a + b} // function declaration
+let f = (a, b) -> {return a + b}; // function expression
+let f = (a, b) -> a + b; // function expression without curly brackets
+Function f = (a, b) -> {a + b}; // variable is explicitly a function
 
 // typed functions (they can only return floats)
-let f = float (float a, float b) {return a + b};
-let f = float (float a, float b) => a + b;
-float f(float a, float b) {return a + b}
+f(float a, float b) -> float {return a + b}
+let f = (float a, float b) -> float {return a + b};
+let f = (float a, float b) -> float a + b;
 ```
-Function declarations are hoisted while function expressions are not. Arrow functions are like function expressions except that they cannot be used as methods or constructors. Additionally if the body of an arrow function is a singular expression the result of the expression is returned from the function. Methods are a special type of function that only exist as properties of a class. They are different because they have a `this` keyword available to them that refers to the object the method is being called on. Normal functions do not have the `this` keyword. A function is called with its identifier followed by immediately by parenthesis. No characters (including spaces) are allowed between the functions's identifier and the open parenthesis. The arguments for the function are entered between the parenethesis seperated by commas.
+Function declarations are hoisted while function expressions are not. If a function expression's body is a singular expression then the result of the expression is returned from the function unless the functions return type is void. Methods are a special type of function that only exist as properties of a class. They are different because they have a `this` keyword available to them that refers to the object the method is being called on. Normal functions do not have the `this` keyword. A function is called with its identifier followed by immediately by parenthesis. No characters (including spaces) are allowed between the functions's identifier and the open parenthesis. The arguments for the function are entered between the parenethesis seperated by commas.
 ```
 myFunction(1, 2, 3);
 ```
