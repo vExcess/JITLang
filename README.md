@@ -1,20 +1,23 @@
 # JITLang
-A Just In Time compiled language that aims to be JavaScript the way JavaScript should have been designed.
-The language combines features from both lower level and higher level languages. For example JITLang is both dynamically and statically typed.
+A Just In Time compiled language that aims to be a hybrid language combining features from both lower level and higher level languages. For example function return types and arguments are by default dynamically typed, but they can be explicitly declared to be a certain type resulting in static typing behavior. Some people argue that defaulting to dynamic typing is prone to bugs; if you can't remember to type your functions then that's a skill issue, but regardless to make development as convienent as possible, I will add compiler flags which you can use to ensure type safety.
 
 ## Feedback Appreciated
-If you find any discrepancies or vague cases in my specification please let me know so that I can fix them.
+If you find any discrepancies or ambiguous cases in my specification please let me know so that I can fix them.
 
 ## Notes:
-  - The language is FAR from being complete. It's just barely a usable language at the moment.
-  - The language is theoretically capabable of being faster than JavaScript, however at the moment my runtime is about 10,000x slower.
-  - I implemented it's runtime in JavaScript which happens to be very very slow, but in the future I will rewrite VexScript's runtime in C++ which should make it much more performant.
+  - I've tried to write a complete specification, but I'm sure there are details and edge cases I haven't thought about.
+  - The language is theoretically capable of being faster than JavaScript, however at the moment my runtime is about 10,000x slower.
+  - It's runtime is currently only implemented in JavaScript (which is quite slow) and it only supports a very small subset of the language (which is why I haven't publicly released it yet)
+  - I am planning to implement Web Assembly as a compilation target for JITLang which would result in the unique ability to easily write code for the web that has near native performance. Currently if you want to compile code to Web Assembly, you'll need to use Emscripten which is a big native executable which can't run in a browser. In comparison JITLang will be able to compile inside your web browser and will be much more lightweight. 
 
 ## Purpose
-To be a language that combines the high-level features and syntax of JavaScript with lower-level features from Java and C++. The language is meant to allow the programmer flexible and concise code while maintaining simplicity and fast execution speed. While JavaScript forces you to write unoptimizable code that is easy to understand and C++ forces you to write dangerously complex code that is highly optimizable, JIT-Lang lets you write performant code where it matters and simple code where convenient. JitLang is designed to be JavaScript the way JavaScript should have been designed. It gets rid of the stupid features of JavaScript that nobody uses. For example in JavaScript Object plus Array equals Number, and Array plus Number equals String which makes complete logical sense (love this video https://www.destroyallsoftware.com/talks/wat). JavaScript also has a lot of ambiguous syntax that JitLang does away with. It is superior to Java because “I love being forced to type out ‘class Main { public static void main(String[] args) {} }’ every time I want to start a program said no programmer ever” (Also highly recommend https://www.youtube.com/watch?v=m4-HM_sCvtQ). OOP is great and all, but making literally everything its own class is going too far. In C++, the specification for the language is vague so don’t know if the int you are using is 4 bytes or 2 bytes. JitLang adds features from C++ that neither JS nor Java supports such as multiple inheritance and operator overloading which are incredibly helpful for writing concise and understandable code.
+To be a language that combines the high-level features and syntax of JavaScript with lower-level features from Java and C++. The language is meant to allow the programmer flexible and concise code while maintaining simplicity and fast execution speed. While JavaScript forces you to write unoptimizable code that is easy to understand and C++ forces you to write dangerously complex code that is highly optimizable, JIT-Lang lets you write performant code where it matters and simple code where convenient. JitLang is designed to be JavaScript the way JavaScript should have been designed. It gets rid of the stupid features of JavaScript that nobody uses. For example in JavaScript Object plus Array equals Number, and Array plus Number equals String which makes complete logical sense (love this video https://www.destroyallsoftware.com/talks/wat). JavaScript also has a lot of ambiguous syntax that JitLang does away with. It is superior to Java because "I love being forced to type out ‘class Main { public static void main(String[] args) {} }’ every time I want to start a program said no programmer ever" (Also highly recommend https://www.youtube.com/watch?v=m4-HM_sCvtQ). OOP is great and all, but making literally everything its own class is going too far. In C++, the specification for the language is vague so never know if the int you are using is 4 bytes or 2 bytes. JitLang also adds features that neither JS nor Java support such as multiple inheritance and operator overloading which are incredibly helpful for writing concise and clean code.
 
 ## Execution
-JitLang source code are stored as “.jitl” files synonymous with “.java” files. Source code files are then compiled to JitLang bytecode/syntax tree files stored as “.jitt” which are the equivalent to Java’s “.class” files. The “.jitt” files are then run in the JitLang VM. JitLang source code can be compiled to native executables for ease of distribution. However, compiling to a native executable may result in a large file size if the JitLang compiler needs to bundle the JitLang Virtual Machine into the executable.
+JitLang source code are stored as ".jitl" files synonymous with ".java" files. Source code files are then compiled to JITLang bytecode/syntax tree files stored as ".jitt" which are the equivalent to Java’s ".class" files. The ".jitt" files are then run in the JITLang VM. JITLang can also be compiled directly to native executables or Web Assembly. Depending on the complexity of the code the executable may be larger if the compiler needs to bundle the JITLang VM inside of the executable.
+
+## Semicolons
+There is a big argument between whether languages should require semicolons or frown upon them. JavaScript says both are good. However the way JavaScript did it is absolutely awful. While JS makes semicolons technically optional, the use or lack thereof can drastically change the meaning of the code which very often leads to frustrating bugs. JITLang on the other hand makes semicolons completely optional, meaning they are only for asthetics. However unlike JS, the usage or lack of semicolons make no change to the meaning of the code.
 
 ## Special Words
 ### Keywords
@@ -58,7 +61,7 @@ Rules for naming identifier
 - Names cannot begin with a number
 - Names are case-sensitive (a and A are different variables).
 - Reserved words cannot be used as names.
-You can use `let` rather than a specific type. The compiler/runtime will then automatically detect the variable’s data type. If the variable is left uninitialized it will hold the value of `void` until assigned a value. Re-declaring a variable that has already been declared in the same scope will throw a syntax error. If the variable is to be a constant you can use the `const` modifier before its type ex: `const int a = 1;`. If the variable is being declared with modifiers (const, private, static, export) and the variable type is unspecified then you can leave out the `let` ex:
+You can use `let` rather than a specific type. The compiler will automatically detect the variable’s data type. If the variable is left uninitialized it will hold the value of `void` until assigned a value. Re-declaring a variable that has already been declared in the same scope will throw a syntax error. If you attempt to assign a variable a value with a different data type than the variable has then JITLang will attempt to implicitly cast the value and throws a type error if it fails. If the variable is to be a constant you can use the `const` modifier before its type ex: `const int a = 1;`. If the variable is being declared with modifiers (const, private, static, export) and the variable type is unspecified then you can leave out the `let` ex:
 ```
 const a = 1;
 ```
@@ -118,12 +121,12 @@ class Animal {
 	int age = 0; // variable declarations
 	private name; // private variables
 	static needsOxygen = true; // static makes a property/method belong to the class rather than an instance of the class
-	Animal(string n) { // constructor
+	Animal(string n) -> { // constructor
 		name = n; // define object properties
 		getName(); // call methods
 		this.getName(); // properties/methods can also be accessed using the `this` keyword
 	}
-	string getName() { // methods
+	getName() -> String { // methods
 		return this.name;
 	}
 }
@@ -132,50 +135,50 @@ Multiple inheritance is supported. If a class has two parent classes with the sa
 ```
 class LandAnimal {
 	thing = 1;
-	LandAnimal() {}
-	move() { println(“Walk”); }
+	LandAnimal() -> {}
+	move() -> { println("Walk"); }
 }
 class WaterAnimal {
 	thing = 2;
 	WaterAnimal() {}
-	move() { println(“Swim”); }
+	move() -> { println("Swim"); }
 }
 ```
 ```
 class Platypus extends LandAnimal, WaterAnimal {
-	Platypus() {}
+	Platypus() -> {}
 }
-new Platypus().move(); // prints “Swim” because WaterAnimal is the last class Platypus is extended from
+new Platypus().move(); // prints "Swim" because WaterAnimal is the last class Platypus is extended from
 new Platypus().thing // 2
 ```
 Using `inherit … from …` and `inherit … from … as …` you can inherit a property/method from any class resulting in very powerful multi inheritance. This can also be used to overwrite the default behavior of inheriting the property/method from the class at the end of the extends list.
 ```
 class Platypus extends WaterAnimal, LandAnimal {
-	Platypus() {}
+	Platypus() -> {}
 	inherit move from WaterAnimal;
 }
-new Platypus().move(); // prints “Swim”
+new Platypus().move(); // prints "Swim"
 ```
 ```
 class Platypus extends WaterAnimal, LandAnimal {
-	Platypus() {}
+	Platypus() -> {}
 	inherit move from LandAnimal as walk;
 	inherit move from WaterAnimal as swim;
 }
-new Platypus().walk(); // prints “Walk”
-new Platypus().swim(); // prints “Swim”
+new Platypus().walk(); // prints "Walk"
+new Platypus().swim(); // prints "Swim"
 new Platypus().thing // 1
 ```
 When inheriting multiple properties from one class you can use a comma separated list
 ```
 class Parent {
-	Parent() {}
-	a() {}
-	b() {}
-	c() {}
+	Parent() -> {}
+	a() -> {}
+	b() -> {}
+	c() -> {}
 }
 class Child {
-	Child () {}
+	Child() -> {}
 	inherit a, b, c from Parent as x, y, z;
 }
 ```
@@ -212,10 +215,10 @@ c // throws reference error
 By default the enum variables value is the index of the variable name in the enum, but this can be overridden using the assignment operator.
 ```
 enum {
-	a, b = “bar”, c
+	a, b = "bar", c
 }
 a // 0
-b // “bar”
+b // "bar"
 c // 2
 ```
 Enums can be used in classes
@@ -223,7 +226,7 @@ Enums can be used in classes
 class Foo {
 	static enum { a, b, c }
 	enum { d, e, f }
-	Foo() {
+	Foo() -> {
 		this.d // 
 	}
 }
@@ -231,9 +234,6 @@ Foo.a // 1
 Foo.b // 2
 Foo.c // 3
 ```
-
-## Semicolons
-Semicolons are completely optional in JitLang. The language’s syntax is specifically designed so that having semi-colons versus not having them makes no difference to the meaning of the code.
 
 ## Arrays
 Arrays are a special type of Object where each property is a 32 bit integer rather than a string. Arrays can only store one type of data (eg: you cannot store ints and floats in the same array). Arrays are created with the following syntaxes:
@@ -313,7 +313,13 @@ Array.reverse - `arr.reverse()` reverses all items in the array so that the firs
 Array.sort - `arr.sort((a, b) => return a - b)` if the items are numbers and no argument is given then they will be sorted into order from smallest to largest. If items are strings and no argument is given they will be sorted according their ASCII values from smallest to largest. If items are neither numbers nor strings a function must be given as an argument that takes two items and returns a number, otherwise is a type error.
 
 ## Functions
-Functions are declared using the following syntaxes.
+Functions are declared using the following syntax
+```
+nameIfIsADeclaration(type param, type param2) -> returnType {
+	// body
+}
+```
+Examples:
 ```
 // untyped functions (they can return any type)
 f(a, b) -> {return a + b} // function declaration
@@ -334,7 +340,7 @@ myFunction(1, 2, 3);
 ### Returning from a function
 The `return` keyword is used to return a value from a function. When the return keyword is encountered the function returns the expression that is after it and exits the function. If there is not expression after it then it returns void;
 ```
-func thing() {
+thing() -> {
 	println(1);
 	return 2;
 	println(3); // this code is unreachable and will throw a compiler warning
@@ -347,12 +353,12 @@ got 2
 ```
 Any code after a return statement that is unreachable will throw a compiler warning. Note that if a value is on the line after the return statement it still gets returned
 ```
-() => {
+() ->  {
 	return 
 	1;
 }
 // is equivelant to
-() => {
+() ->  {
 	return 1;
 }
 ```
@@ -360,7 +366,7 @@ Any code after a return statement that is unreachable will throw a compiler warn
 ### async/await
 the `async` keyword modifies a function making it run asyncronously.
 ```
-async func myFunc() {
+async myFunc() -> {
 	println(1);
 }
 myFunc();
@@ -373,10 +379,10 @@ println(2);
 ```
 the `await` keyword can be used when calling a function to make the process wait for the asyncronous function to finish executing before continuing. The await keyword cannot be used the top level scope, it can only be used inside of other async functions.
 ```
-async func myFunc() {
+async myFunc() -> {
 	println(1);
 }
-(async () {
+(async () -> {
 	await myFunc();
 	println(2);
 })()
@@ -388,12 +394,12 @@ async func myFunc() {
 ```
 async functions can be chained together using the `.then` property. The `then` method takes one function as an argument. This one function also has one parameter which gets the value returned from the original async function.
 ```
-async func myFunc() {
+async myFunc() -> {
 	println(1);
 	return 2;
 }
 
-myFunc().then(res => {
+myFunc().then((res) -> {
 	println(res);
 })
 // console output:
