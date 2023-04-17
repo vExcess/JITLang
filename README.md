@@ -121,12 +121,12 @@ class Animal {
 	int age = 0; // variable declarations
 	private name; // private variables
 	static needsOxygen = true; // static makes a property/method belong to the class rather than an instance of the class
-	Animal(string n) -> { // constructor
+	Animal(string n) => { // constructor
 		name = n; // define object properties
 		getName(); // call methods
 		this.getName(); // properties/methods can also be accessed using the `this` keyword
 	}
-	getName() -> String { // methods
+	getName() => String { // methods
 		return this.name;
 	}
 }
@@ -135,18 +135,18 @@ Multiple inheritance is supported. If a class has two parent classes with the sa
 ```
 class LandAnimal {
 	thing = 1;
-	LandAnimal() -> {}
-	move() -> { println("Walk"); }
+	LandAnimal() => {}
+	move() => { println("Walk"); }
 }
 class WaterAnimal {
 	thing = 2;
 	WaterAnimal() {}
-	move() -> { println("Swim"); }
+	move() => { println("Swim"); }
 }
 ```
 ```
 class Platypus extends LandAnimal, WaterAnimal {
-	Platypus() -> {}
+	Platypus() => {}
 }
 new Platypus().move(); // prints "Swim" because WaterAnimal is the last class Platypus is extended from
 new Platypus().thing // 2
@@ -154,14 +154,14 @@ new Platypus().thing // 2
 Using `inherit … from …` and `inherit … from … as …` you can inherit a property/method from any class resulting in very powerful multi inheritance. This can also be used to overwrite the default behavior of inheriting the property/method from the class at the end of the extends list.
 ```
 class Platypus extends WaterAnimal, LandAnimal {
-	Platypus() -> {}
+	Platypus() => {}
 	inherit move from WaterAnimal;
 }
 new Platypus().move(); // prints "Swim"
 ```
 ```
 class Platypus extends WaterAnimal, LandAnimal {
-	Platypus() -> {}
+	Platypus() => {}
 	inherit move from LandAnimal as walk;
 	inherit move from WaterAnimal as swim;
 }
@@ -172,13 +172,13 @@ new Platypus().thing // 1
 When inheriting multiple properties from one class you can use a comma separated list
 ```
 class Parent {
-	Parent() -> {}
-	a() -> {}
-	b() -> {}
-	c() -> {}
+	Parent() => {}
+	a() => {}
+	b() => {}
+	c() => {}
 }
 class Child {
-	Child() -> {}
+	Child() => {}
 	inherit a, b, c from Parent as x, y, z;
 }
 ```
@@ -226,7 +226,7 @@ Enums can be used in classes
 class Foo {
 	static enum { a, b, c }
 	enum { d, e, f }
-	Foo() -> {
+	Foo() => {
 		this.d // 
 	}
 }
@@ -313,34 +313,72 @@ Array.reverse - `arr.reverse()` reverses all items in the array so that the firs
 Array.sort - `arr.sort((a, b) => return a - b)` if the items are numbers and no argument is given then they will be sorted into order from smallest to largest. If items are strings and no argument is given they will be sorted according their ASCII values from smallest to largest. If items are neither numbers nor strings a function must be given as an argument that takes two items and returns a number, otherwise is a type error.
 
 ## Functions
-Functions are declared using the following syntax
+Functions are declared using the following syntax. If two functions with the same identifier and argument types is declared then a syntax error is thrown. If no return type is specified then any return type is allowed rather than void. If you want the enforce the function to return void then you must explicitly declare it as void.
 ```
-nameIfIsADeclaration(type param, type param2) -> returnType {
+nameIfIsADeclaration(type param, type param2) => returnType {
 	// body
 }
 ```
 Examples:
 ```
 // untyped functions (they can return any type)
-f(a, b) -> {return a + b} // function declaration
-let f = (a, b) -> {return a + b}; // function expression
-let f = (a, b) -> a + b; // function expression without curly brackets
-Function f = (a, b) -> {a + b}; // variable is explicitly a function
+f(a, b) => {return a + b} // function declaration
+let f = (a, b) => {return a + b}; // function expression
+let f = (a, b) => a + b; // function expression without curly brackets
+Function f = (a, b) => {a + b}; // variable is explicitly a function
 
 // typed functions (they can only return floats)
-f(float a, float b) -> float {return a + b}
-let f = (float a, float b) -> float {return a + b};
-let f = (float a, float b) -> float a + b;
+f(float a, float b) => float {return a + b}
+let f = (float a, float b) => float {return a + b};
+let f = (float a, float b) => float a + b;
 ```
 Function declarations are hoisted while function expressions are not. If a function expression's body is a singular expression then the result of the expression is returned from the function unless the functions return type is void. Methods are a special type of function that only exist as properties of a class. They are different because they have a `this` keyword available to them that refers to the object the method is being called on. Normal functions do not have the `this` keyword. A function is called with its identifier followed by immediately by parenthesis. No characters (including spaces) are allowed between the functions's identifier and the open parenthesis. The arguments for the function are entered between the parenethesis seperated by commas.
 ```
 myFunction(1, 2, 3);
 ```
 
+## Function Overloading
+Function overloading can be used to change which function is being called depending on the types of the arguments. If multiple functions have the same name then the one who's parameters match the arguments given will be called. If none match then the version of the function that has not specified type is used.
+```
+myFunc(int a) => {
+	println("handle int");
+}
+
+myFunc(float a) => {
+	println("handle float");
+}
+
+myFunc(a) => {
+	println("handle all other types");
+}
+
+myFunc(1); // prints handle int
+myFunc(1.0); // prints handle float
+myFunc(""); // prints handle all other types
+```
+
+## Operator Overloading
+Operator overloading is done by adding the operator symbol between the name of the method and the parenthesis. operator overloaded methods follow the same rules as overloaded functions.
+```
+class Thing {
+	Thing() => {
+
+	}
+
+	myMethod + (value) => {
+		// this gets called when a value of any type is added to an instance of Thing
+	}
+
+	myMethod + (int value) => {
+		// this gets called when an integer is added to an instance of Thing
+	}
+}
+```
+
 ### Returning from a function
 The `return` keyword is used to return a value from a function. When the return keyword is encountered the function returns the expression that is after it and exits the function. If there is not expression after it then it returns void;
 ```
-thing() -> {
+thing() => {
 	println(1);
 	return 2;
 	println(3); // this code is unreachable and will throw a compiler warning
@@ -353,12 +391,12 @@ got 2
 ```
 Any code after a return statement that is unreachable will throw a compiler warning. Note that if a value is on the line after the return statement it still gets returned
 ```
-() ->  {
+() =>  {
 	return 
 	1;
 }
 // is equivelant to
-() ->  {
+() =>  {
 	return 1;
 }
 ```
@@ -366,7 +404,7 @@ Any code after a return statement that is unreachable will throw a compiler warn
 ### async/await
 the `async` keyword modifies a function making it run asyncronously.
 ```
-async myFunc() -> {
+async myFunc() => {
 	println(1);
 }
 myFunc();
@@ -379,10 +417,10 @@ println(2);
 ```
 the `await` keyword can be used when calling a function to make the process wait for the asyncronous function to finish executing before continuing. The await keyword cannot be used the top level scope, it can only be used inside of other async functions.
 ```
-async myFunc() -> {
+async myFunc() => {
 	println(1);
 }
-(async () -> {
+(async () => {
 	await myFunc();
 	println(2);
 })()
@@ -394,12 +432,12 @@ async myFunc() -> {
 ```
 async functions can be chained together using the `.then` property. The `then` method takes one function as an argument. This one function also has one parameter which gets the value returned from the original async function.
 ```
-async myFunc() -> {
+async myFunc() => {
 	println(1);
 	return 2;
 }
 
-myFunc().then((res) -> {
+myFunc().then((res) => {
 	println(res);
 })
 // console output:
