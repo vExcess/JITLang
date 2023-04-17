@@ -1,4 +1,4 @@
-# JITLang
+# JITLang (originally VexScript)
 A Just In Time compiled language that aims to be a hybrid language combining features from both lower level and higher level languages. For example function return types and arguments are by default dynamically typed, but they can be explicitly declared to be a certain type resulting in static typing behavior. Some people argue that defaulting to dynamic typing is prone to bugs; if you can't remember to type your functions then that's a skill issue, but regardless to make development as convienent as possible, I will add compiler flags which you can use to ensure type safety.
 
 ## Feedback Appreciated
