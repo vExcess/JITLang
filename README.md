@@ -94,7 +94,7 @@ The syntax for casting is:
 <type> value
 <int> 123.987 // becomes 123
 ```
-JITLangs implicit casting rules are very simple. All numbers can be cast to any other type of number. When operating on two numbers JITLang will promote the operand of a lesser type to the other operand's type in order to prevent data loss. For example if you multiply an int by a float it will automatically cast the int to a float before perfoming the operation.
+JITLangs implicit casting rules are very simple. All numbers can be cast to any other type of number (except BigInt). When operating on two numbers JITLang will promote the operand of a lesser type to the other operand's type in order to prevent data loss. For example if you multiply an int by a float it will automatically cast the int to a float before perfoming the operation.
 
 ### Number Casting Rules
 1)  If one operand's type can store decimal values and the other operand's type cannot then the operand that cannot is promoted to the type of the one that can
@@ -999,6 +999,16 @@ typeof("") // returns string
 typeof([]) // returns Array
 typeof({}) // returns Objec
 typeof(() => {}) // returns Function
+```
+
+## BigInt
+BigInts are integers of arbitrarily big size. BigInts are a primitive data type. They work with all arithmetic and bitwise operators in the same way a regular integer would. Arithmetic operators on a BigInt can only be done with another BigInt. Trying to add a BigInt and a regular int will result in a type error. 
+```
+// BigInts can be created using the BigInt function
+BigInt a = BigInt("123"); // The BigInt function expects strings
+BigInt b = BigInt(123); // 123 is implicitly cast to a string and then a BigInt
+let c = 123n; // for the sake of concise code adding an "n" after a number converts it into a BigInt
+let d = BigInt("123.99"); // becomes 123 because all floating point data is truncated
 ```
 
 ### arithmetic operators
