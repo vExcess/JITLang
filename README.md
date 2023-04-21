@@ -1,5 +1,5 @@
 # JITLang (originally VexScript)
-A Just In Time compiled language that aims to be a hybrid language combining features from both lower level and higher level languages. For example function return types and arguments are by default dynamically typed, but they can be explicitly declared to be a certain type resulting in static typing behavior. Some people argue that defaulting to dynamic typing is prone to bugs; if you can't remember to type your functions then that's a skill issue, but regardless to make development as convienent as possible, I will add compiler flags which you can use to ensure type safety.
+A Just In Time compiled language that is somewhat of a hybrid between high level languages and lower level languages. For example function return types and arguments are by default dynamically typed, but they can be explicitly declared to be a certain type resulting in static typing behavior. Some people argue that defaulting to dynamic typing is prone to bugs; so I will add compiler flags which you can use to ensure type safety. The language is meant to allow the programmer to write flexible and concise code while maintaining simplicity and fast execution speed. While JavaScript forces you to write unoptimizable code that is easy to understand and C++ forces you to write dangerously complex code that is highly optimizable, JIT-Lang lets you write performant code where it matters and simple code where convenient. JITLang is designed to be JavaScript the way JavaScript should have been designed. It gets rid of the stupid features of JavaScript that nobody uses. For example in JavaScript Object plus Array equals Number, and Array plus Number equals String which makes complete logical sense (love this video https://www.destroyallsoftware.com/talks/wat). JavaScript also has a lot of ambiguous syntax that JITLang does away with. It is superior to Java because "I love being forced to type out 'class Main { public static void main(String[] args) {} }' every time I want to start a program said no programmer ever" (Also highly recommend https://www.youtube.com/watch?v=m4-HM_sCvtQ). OOP is great and all, but making literally everything its own class is going too far. In C++, the specification for the language is vague so never know if the int you are using is 4 bytes or 2 bytes. JITLang also adds features that neither JS nor Java support such as multiple inheritance and operator overloading which are incredibly helpful for writing concise and clean code.
 
 ## Feedback Appreciated
 If you find any discrepancies or ambiguous cases in my specification please let me know so that I can fix them.
@@ -7,24 +7,21 @@ If you find any discrepancies or ambiguous cases in my specification please let 
 ## Notes:
   - I've tried to write a complete specification, but I'm sure there are details and edge cases I haven't thought about.
   - The language is theoretically capable of being faster than JavaScript, however at the moment my runtime is about 10,000x slower.
-  - It's runtime is currently only implemented in JavaScript (which is quite slow) and it only supports a very small subset of the language (which is why I haven't publicly released it yet)
-  - I am planning to implement Web Assembly as a compilation target for JITLang which would result in the unique ability to easily write code for the web that has near native performance. Currently if you want to compile code to Web Assembly, you'll need to use Emscripten which is a big native executable which can't run in a browser. In comparison JITLang will be able to compile inside your web browser and will be much more lightweight. 
-
-## Purpose
-To be a language that combines the high-level features and syntax of JavaScript with lower-level features from Java and C++. The language is meant to allow the programmer flexible and concise code while maintaining simplicity and fast execution speed. While JavaScript forces you to write unoptimizable code that is easy to understand and C++ forces you to write dangerously complex code that is highly optimizable, JIT-Lang lets you write performant code where it matters and simple code where convenient. JitLang is designed to be JavaScript the way JavaScript should have been designed. It gets rid of the stupid features of JavaScript that nobody uses. For example in JavaScript Object plus Array equals Number, and Array plus Number equals String which makes complete logical sense (love this video https://www.destroyallsoftware.com/talks/wat). JavaScript also has a lot of ambiguous syntax that JitLang does away with. It is superior to Java because "I love being forced to type out ‘class Main { public static void main(String[] args) {} }’ every time I want to start a program said no programmer ever" (Also highly recommend https://www.youtube.com/watch?v=m4-HM_sCvtQ). OOP is great and all, but making literally everything its own class is going too far. In C++, the specification for the language is vague so never know if the int you are using is 4 bytes or 2 bytes. JitLang also adds features that neither JS nor Java support such as multiple inheritance and operator overloading which are incredibly helpful for writing concise and clean code.
+  - My runtime is currently only implemented in JavaScript (which is quite slow) and it only supports a very small subset of the language (which is why I haven't publicly released it yet)
+  - I plan on making JITLang able to compile to Web Assembly resulting in the unique ability to easily write code for the web that has near native performance. Currently if you want to compile code to WebAssembly, you'll need to use Emscripten which is a big native executable which can't run in a browser. In comparison JITLang will be able to compile inside your web browser and will be much more lightweight. 
 
 ## Execution
-JitLang source code are stored as ".jitl" files synonymous with ".java" files. Source code files are then compiled to JITLang bytecode/syntax tree files stored as ".jitt" which are the equivalent to Java’s ".class" files. The ".jitt" files are then run in the JITLang VM. JITLang can also be compiled directly to native executables or Web Assembly. Depending on the complexity of the code the executable may be larger if the compiler needs to bundle the JITLang VM inside of the executable.
+JITLang source code are stored as ".jitl" files synonymous with ".java" files. Source code files are then compiled to JITLang bytecode/syntax tree files stored as ".jitt" which are the equivalent to Java’s ".class" files. The ".jitt" files are then run in the JITLang VM. In addition to running in the JITLang VM, JITLang will also be able to compile to WebAssembly (for web use) or Java Bytecode (for native use).
 
 ## Semicolons
-There is a big argument between whether languages should require semicolons or frown upon them. JavaScript says both are good. However the way JavaScript did it is absolutely awful. While JS makes semicolons technically optional, the use or lack thereof can drastically change the meaning of the code which very often leads to frustrating bugs. JITLang on the other hand makes semicolons completely optional, meaning they are only for asthetics. However unlike JS, the usage or lack of semicolons make no change to the meaning of the code.
+Some think semicolons ought to be mandatory while others frown upon them. JavaScript says both are good. However the way JavaScript did it is absolutely awful. While JS makes semicolons technically optional; the use or lack thereof can drastically change the meaning of the code which very often leads to frustrating bugs. JITLang on the other hand makes semicolons completely optional, meaning they are only for asthetics. However unlike JS, the usage or lack of semicolons make no change to the meaning of the code.
 
 ## Special Words
 ### Keywords
-let, const, if, else, do, while, for, struct, class, private, static, super, extends, inherit, enum, try, catch, throw, return, switch, case, default, break, continue, func, new, this, true, false, Infinity, import, export, from, as, async, await
+let, const, if, else, do, while, for, struct, class, private, static, super, extends, inherit, enum, try, catch, throw, return, switch, case, default, break, continue, new, this, true, false, Infinity, import, export, from, as, async, await, typeof
 ### Built in data types
-bool, byte, short, char, int, uint, long, ulong, float, double, void, null, string, vec, BigInt
-Object, Array, Function, String
+bool, byte, short, char, int, uint, long, ulong, float, double, void, null, string, BigInt  
+Object, Array, Function, Struct, Class, String
 
 ## Primitive Data Types
 Primitive data types are passed by value rather than by reference.  
@@ -41,7 +38,6 @@ Primitive data types are passed by value rather than by reference.
 **void** - A special primitive data type that is a placeholder for nothing.  
 **null** - Similar to void, null is a special primitive data type that points to nothing. Object, Array, and String variables that are undefined point to null.  
 **string** - A special type of array of characters. Despite actually being an object, strings are treated like primitives.  
-**vec** - A vector that can hold 2, 3, or 4 values  
 **BigInt** - Capable of holding signed integers of arbitrarily large size  
 
 ## Non-primitive Data Types
@@ -49,19 +45,22 @@ Non-primitive data types are passed by reference rather than value
 **Object** - The root class of all other classes and objects  
 **Array** - A special type of object where each key is an integer that can be read/write using the [] operator  
 **Function** - Functions are objects so that they can be treated like first class functions and be passed around by reference  
+**Struct** - is just an alias to Function  
+**Class** - A blueprint for creating Objects  
 **String** - Strings are just an object version of the primitive string data type  
 
 ## Variables
 Variables are created in the format
 ```
-type foo = bar;
+type variableName = value;
+int idk = 1;
 ```
 Rules for naming identifier
 - Names can contain letters, digits, underscores, dollar signs, and most other Unicode characters (Yes, you can use emojis for variable names).
 - Names cannot begin with a number
 - Names are case-sensitive (a and A are different variables).
 - Reserved words cannot be used as names.
-You can use `let` rather than a specific type. The compiler will automatically detect the variable’s data type. If the variable is left uninitialized it will hold the value of `void` until assigned a value. Re-declaring a variable that has already been declared in the same scope will throw a syntax error. If you attempt to assign a variable a value with a different data type than the variable has then JITLang will attempt to implicitly cast the value and throws a type error if it fails. If the variable is to be a constant you can use the `const` modifier before its type ex: `const int a = 1;`. If the variable is being declared with modifiers (const, private, static, export) and the variable type is unspecified then you can leave out the `let` ex:
+You can use `let` rather than a specific type. The compiler will automatically detect the variable's data type. If the variable is left uninitialized it will hold the value of `void` until assigned a value. Re-declaring a variable that has already been declared in the same scope will throw a syntax error. If you attempt to assign a variable a value with a different data type than the variable has then JITLang will attempt to implicitly cast the value and throws a type error if it fails. If the variable is to be a constant you can use the `const` modifier before its type ex: `const int a = 1;`. If the variable is being declared with modifiers (const, private, static, export) and the variable type is unspecified then you can leave out the `let` ex:
 ```
 const a = 1;
 ```
@@ -88,11 +87,12 @@ b // throws reference error
 ```
 
 ## Casting
-Having to memorize various different casting rules can be a big pain and manually needing to cast each parameter going into an operation is both tedious and makes for long code. One of the great features about JavaScript is that anything can be cast to anything else. Similarly, JITLang will attempt to implicitly cast any piece of data to the needed type for you.
+Having to memorize various different casting rules can be a big pain and manually needing to cast each parameter going into an operation is both tedious and makes for wordy code. One of the great features about JavaScript is that anything can be cast to anything else. Similarly, JITLang will attempt to implicitly cast any piece of data to the needed type for you.
 
 The syntax for casting is:
 ```
-int foo = <long> bar;
+<type> value
+<int> 123.987 // becomes 123
 ```
 JITLangs implicit casting rules are very simple. All numbers can be cast to any other type of number. When operating on two numbers JITLang will promote the operand of a lesser type to the other operand's type in order to prevent data loss. For example if you multiply an int by a float it will automatically cast the int to a float before perfoming the operation.
 
@@ -105,6 +105,7 @@ JITLangs implicit casting rules are very simple. All numbers can be cast to any 
 - If concatenating a char and a string, the char will automatically be cast to a string.
 - If casting a string to a char, the result will be the first character in the string.
 - When any number is being cast to a string the result will be the decimal text of the number (eg: `<string>(65)` -> `"65"`). The exception to this is the char number type. When chars are cast to a string they form a single character long string where the character is based on the ASCII value of the char. Essentially `<string>(myChar)` is equivelant to `String.fromCharCode(myChar)` (eg: `<string>(<char> 65)` -> `"A"`)
+- Although numbers are implicitly cast to strings, strings are not implicitly cast to numbers and will throw a type error if you try
 
 ### Literal Casting Rules
 Any number literals are a double if it has decimal points, or is an int if there are no decimal points.
@@ -113,9 +114,10 @@ let num = 1; // num is an int
 let num = 1.0; // num is a double
 let num = 1.; // also a double; trailing decimals are allowed
 ```
+If you try implicity casting anything not following the rules above then a type error will be throw.
 
 ## Classes
-Classes are created in the following format
+Classes are created like so:
 ```
 class Animal {
 	int age = 0; // variable declarations
@@ -131,22 +133,29 @@ class Animal {
 	}
 }
 ```
-Multiple inheritance is supported. If a class has two parent classes with the same property/method it will inherit from the last parent. When creating properties without a type in a class the `let` is excluded.
+Multiple inheritance is supported. If a class has two parent classes with the same property/method it will inherit from the last parent. When creating properties without a type in a class the `let` is excluded. The first time you call super() it calls the first parent's constructor, the second calls the second parent's constructor and so on. It is not necessary to call super(), but if you don't the parent's constructor will not be called. However despite the parent's constructor not being called, the variables and methods from the parent class will still exist on the child class. Accessing a property on an object or class that doesn't exist will return void.
 ```
 class LandAnimal {
-	thing = 1;
-	LandAnimal() => {}
+	thing;
+	LandAnimal(num) => {
+		thing = num;
+	}
 	move() => { println("Walk"); }
 }
 class WaterAnimal {
 	thing = 2;
-	WaterAnimal() {}
+	WaterAnimal() => {
+		
+	}
 	move() => { println("Swim"); }
 }
 ```
 ```
 class Platypus extends LandAnimal, WaterAnimal {
-	Platypus() => {}
+	Platypus() => {
+		super(1); // the first time super is called LandAnimal's constructor is called
+		super(); // the second time super is called WaterAnimal's constructor is called
+	}
 }
 new Platypus().move(); // prints "Swim" because WaterAnimal is the last class Platypus is extended from
 new Platypus().thing // 2
@@ -154,14 +163,20 @@ new Platypus().thing // 2
 Using `inherit … from …` and `inherit … from … as …` you can inherit a property/method from any class resulting in very powerful multi inheritance. This can also be used to overwrite the default behavior of inheriting the property/method from the class at the end of the extends list.
 ```
 class Platypus extends WaterAnimal, LandAnimal {
-	Platypus() => {}
+	Platypus() => {
+		super(1);
+		super();
+	}
 	inherit move from WaterAnimal;
 }
 new Platypus().move(); // prints "Swim"
 ```
 ```
 class Platypus extends WaterAnimal, LandAnimal {
-	Platypus() => {}
+	Platypus() => {
+		super(1);
+		super();
+	}
 	inherit move from LandAnimal as walk;
 	inherit move from WaterAnimal as swim;
 }
@@ -178,7 +193,9 @@ class Parent {
 	c() => {}
 }
 class Child {
-	Child() => {}
+	Child() => {
+		super();
+	}
 	inherit a, b, c from Parent as x, y, z;
 }
 ```
@@ -186,11 +203,55 @@ A class can be created without a constructor, but a class without a constructor 
 ```
 class Uninstantiable {
 	int a = 1;
-	static b = 1;
+	static b = 2;
 }
 Uninstantiable.a // returns void
-Uninstantiable.b // returns 1
+Uninstantiable.b // returns 2
 new Uninstantiable(); // throws an error
+
+class Child extends Uninstantiable {
+	Child() => {}
+}
+
+new Child().a; // returns 1
+Child.b // returns 2
+```
+
+## Structs
+Structs are kinda like simple classes. They are meant for creating values that are grouped together, but unlike classes they don't have constructors, inheritance, operator overloading, or methods. To create a new instance of a struct call the name of the struct as if it were a function and provide it values cooresponding to the variables in the struct. These values are assigned in the order that the variables were declared in the structs definition.
+```
+struct myStruct {
+	x;
+	y;
+	z;
+}
+let vec = myStruct(1, 2, 3);
+
+struct typedStruct {
+	int x;
+	int y;
+	int z;
+}
+typedStruct vec = typedStruct(1, 2, 3);
+vec.x // returns 1
+```
+However structs are just syntactical sugar for functions rather than being their own thing.
+```
+struct myStruct {
+	x;
+	y;
+	z;
+}
+// the above struct is actually functionally the same as 
+myStruct (x, y, z) => {
+	return {
+		x: x,
+		y: y,
+		z: z
+	};
+}
+// which means you can pass structs around as functions
+Function myStructRef = myStruct;
 ```
 
 ## Enums
@@ -265,7 +326,7 @@ Object[] arr = [new House(), null, new Float()];
 int[][] = [
 	[1,  2,  3,  4],
 	[5,  6,  7,  8],
-	[9, 10, 11, 12], // the trailing comma is allowed
+	[9, 10, 11, 12], // one trailing comma is allowed
 ];
 int[][] = new int[](3, 4);
 // And 3D arrays
@@ -809,7 +870,7 @@ try {
 Unlike loops and if statements a try/catch statement must have braces. Also only one parameter allowed inside the parenthesis of the catch statement. If a error is not caught then it will crash the program, however if it is caught then it program will not crash.
 
 ## strings and Strings
-`string`s are special char[] Arrays. However despite being objects they act like primitive data types and are passed around by value rather than reference. But despite acting like primitives they have properties and methods like an object. On the contrast `String`s (with a capital S) are objects. They function the same as primitive strings except that they are passed around by reference rather than value. Because strings and Strings are Arrays individual characters can be read and written to using the [] operator. 
+`string`s are special char[] Arrays. However despite being objects they act like primitive data types and are passed around by value rather than reference. But despite acting like primitives they have properties and methods like an object. On the contrast `String`s (with a capital S) are objects. They function the same as primitive strings except that they are passed around by reference rather than value. Because strings and Strings are Arrays individual characters can be read and written to using the [] operator. By default strings are primitive.
 ```
 let str = "123", str2 = "123";
 let strObj = new String("123"), strObj2 = new String("123");
@@ -906,6 +967,38 @@ Other special escape sequences are for representing non-ASCII characters in a st
 ```
 "\xA9" // ©
 "\u00A9 // ©
+```
+
+## Object(s)
+JITLang also allows you to create anonymous objects. Objects can be created in the same format as JavaScript:
+```
+let myValue = "exampleKey";
+Object myObj = {
+	long key1: 123, // keys follow the same rules as all other identifiers; you can put a type before the identifier to set the values type
+	"456": 789, // keys must be strings, you can put the identifier in a string literal
+	[myValue]: 1011, // if you put a variable name in brackets then the value of the variable becomes the name of the key; also one trailing comma is allowed
+};
+
+// values can be read/set using the dot operator or brackets operator
+typeof(myObj.key1) == long // returns true
+myObj["key1"]  // returns 123
+myObj["465"]  // returns 789
+myObj.exampleKey  // returns 1011
+myObj.exampleKey = 9999; // sets property to new value
+myObj.newKey // returns void
+myObj.newKey = "hi"; // you can create set new properties on objects that don't already exist
+```
+While regular Objects can have new properties dynamically assigned on them, Arrays, Functions/Structs, Classes, and string/Strings can not.
+
+## typeof()
+typeof is a built in function that returns the type of a value
+```
+typeof(1) // returns int
+typeof(1.0) // returns double
+typeof("") // returns string
+typeof([]) // returns Array
+typeof({}) // returns Objec
+typeof(() => {}) // returns Function
 ```
 
 ### arithmetic operators
