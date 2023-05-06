@@ -1,0 +1,7 @@
+// A sample JITLang file.
+println("hello world!");
+var x = millis();
+var y = "abc";
+println("x: " + x);
+println("y: " + y);
+println("sum: " + x + y);
