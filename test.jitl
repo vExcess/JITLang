@@ -1,7 +1,12 @@
-// A sample JITLang file.
-println("hello world!");
-var x = millis();
-var y = "abc";
-println("x: " + x);
-println("y: " + y);
-println("sum: " + x + y);
+square(int a) => int {
+    return a * a;
+}
+
+let start = millis();
+
+for (let i = 0; i < 10; i = i + 1) {
+    println(i + ": " + square(i));
+}
+
+int end = millis();
+println("executed in " + (end - start) + " milliseconds");
