@@ -602,6 +602,10 @@
                 return txt.endsWith(".0") ? txt.slice(0, txt.length - 2) : txt;
             }
 
+            if (this.isStringType(object.type)) {
+                return object.nat;
+            }
+
             return JSON.stringify(object);
         }
 
