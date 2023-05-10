@@ -952,7 +952,7 @@ You can escape characters in a string by placing a backslash (\) behind it. Esca
 `he said \`blah blah\` on wednesday`
 `\${test}` // this is equal to "${test}" because the '$' character was escaped
 ```
-Most characters when escaped are themselves however there are special escape characters
+Most characters when escaped are themselves however there are special escape characters  
 "\n" -> line feed  
 "\t" -> tab  
 "\r" -> carriage return  
