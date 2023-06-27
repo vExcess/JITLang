@@ -1,12 +1,12 @@
-square(int a) => int {
-    return a * a;
+fn square(int a) int {
+    return a * a
 }
 
-let start = millis();
+let start = millis()
 
-for (let i = 0; i < 10; i = i + 1) {
-    println(i + ": " + square(i));
+for (let i = 0; i < 10; i++) {
+    println(i + ": " + square(i))
 }
 
-int end = millis();
-println("executed in " + (end - start) + " milliseconds");
+int end = millis()
+println("executed in " + (end - start) + " milliseconds")
