@@ -1240,7 +1240,7 @@ Other special escape sequences are for representing non-ASCII characters in a St
 ```
 
 ## Object(s)
-JITLang also allows you to create anonymous objects. Objects can be created in the same format as JavaScript:
+JITLang also allows you to create anonymous objects. Objects are created in JavaScript Object Notation.
 ```
 let myValue = "exampleKey";
 Object myObj = {
@@ -1255,10 +1255,65 @@ myObj["key1"]  // returns 123
 myObj["465"]  // returns 789
 myObj.exampleKey  // returns 1011
 myObj.exampleKey = 9999; // sets property to new value
-myObj.newKey // returns void
-myObj.newKey = "hi"; // you can create set new properties on objects that don't already exist
 ```
-While regular Objects can have new properties dynamically assigned on them, Arrays, Functions/Structs, Classes, and Strings can not.
+Getting or setting a property of an Object that doesn't exist throws a runtime error.
+You can create a new Object that inherits properties of an old Object using the spread operator like so:
+```
+let oldObj = {
+	a: 1,
+	b: 2
+}
+let newObj = {
+	...oldObj,
+	c: 3
+}
+```
+If you are putting variables into an object you can do it like so. However this feels very redundant
+```
+let a = 1, b = 2;
+let obj = {
+	a: a,
+	b: b,
+	c: 3
+}
+```
+As a result you can also use the shorthand syntax
+```
+let a = 1, b = 2;
+let obj = {
+	a,
+	b,
+	c: 3
+}
+```
+An Object declaration can't directly use the same key twice
+```
+// !!!!! COMPILER ERROR !!!!!
+{
+	a: 1,
+	a: 1
+}
+```
+However you can when using the `[variable]` declaration syntax or when using the spread syntax. Note in the following example that the order matters and the end of the delcaration gets preference over the beginning.
+```
+let oldObj = {
+	a: 1
+}
+let newObj = {
+	...oldObj,
+	a: 2
+}
+newObj.a // 2
+
+let oldObj = {
+	a: 1
+}
+let newObj = {
+	a: 2,
+	...oldObj
+}
+newObj.a // 1
+```
 
 ## typeof()
 typeof is a built in keyword that returns the type of a value
@@ -1326,7 +1381,7 @@ export {
 ```
 
 ### import
-Any type of value can be imported, however you can only import values from files that have exported them. You can also only use an import statement in the global scope/ If the file you are importing is exporting a non object (Arrays not included) value then you import like so `import IDENTIFER from "PATH_TO_FILE"`. Note that IDENTIFIER can what any valid identifier. If the file you are importing exported an object (Arrays not included) then you can import like so `import PROP1, PROP2, PROP3 from "PATH_TO_FILE"` to import select properties from the object into the current scope. Or you can use `import IDENTIFER from "PATH_TO_FILE"` to import the entire object as a single variable. However if your object has a lot of properties you may want to use the spread syntax `import ... from "PATH_TO_FILE"` which will import every property from the object into the current scope. The "PATH_TO_FILE" can contain both absolute and relative URLs. If using a relative URL then the URL is relative to the file using `import` rather than relative to the compiler. Relative URLS start with "./". The convention is to use forward slashes `"./lib`, but because of Windows backward slashes are also allowed `".\lib"`. Note that the path must be a double quote or single quote literal (Multi-line Strings are NOT allowed and neither are variables). You do not need to specify `.jitl` at the end of the path. Circular imports are not allowed. You can also import from website URLs.
+Any type of value can be imported, however you can only import values from files that have exported them. You can also only use an import statement in the global scope/ If the file you are importing is exporting a non object (Arrays not included) value then you import like so `import IDENTIFER from "PATH_TO_FILE"`. Note that IDENTIFIER can what any valid identifier. If the file you are importing exported an object (Arrays not included) then you can import like so `import PROP1, PROP2, PROP3 from "PATH_TO_FILE"` to import select properties from the object into the current scope. Or you can use `import IDENTIFER from "PATH_TO_FILE"` to import the entire object as a single variable. However if your object has a lot of properties you may want to use the wild card syntax `import * from "PATH_TO_FILE"` which will import every property from the object into the current scope. The "PATH_TO_FILE" can contain both absolute and relative URLs. If using a relative URL then the URL is relative to the file using `import` rather than relative to the compiler. Relative URLS start with "./". The convention is to use forward slashes `"./lib`, but because of Windows backward slashes are also allowed `".\lib"`. Note that the path must be a double quote or single quote literal (Multi-line Strings are NOT allowed and neither are variables). You do not need to specify `.jitl` at the end of the path. Circular imports are not allowed. You can also import from website URLs.
 
 ### Example 1
 src/lib.jitl
@@ -1347,7 +1402,7 @@ println(theCode.MUL)
 ```
 src/main2.jitl
 ```
-import ... from "./lib"
+import * from "./lib"
 println(RETURN)
 println(ADD)
 println(MUL)
@@ -1396,7 +1451,8 @@ import test from "https://example.com/library.jitl"
 println(test + "3") // "123"
 ```
 
-Lastly if you are using the conventional module system then you can simply use the name of the module in your import statement. When you use a plain name in your import statement then the compiler will check for a `lib` directory relative to the compiler. It when searches for a directory with that name. Then inside that it searches for a `module.jitl` file. Because the `lib` is relative to the path where the compiler is run modules inside lib can import other modules that are in lib.
+### Example 5
+If you are using the conventional module system then you can simply use the name of the module in your import statement. When you use a plain name in your import statement then the compiler will check for a `lib` directory relative to the compiler. It when searches for a directory with that name. Then inside that it searches for a `module.jitl` file. Because the `lib` is relative to the path where the compiler is run modules inside lib can import other modules that are in lib.
 ```
 project/
 	lib/
@@ -1410,14 +1466,38 @@ project/
 ```
 main.jitl
 ```
-import ... from "my_library"
-import ... from "my_other_library"
+import * from "my_library"
+import * from "my_other_library"
 ```
 is the same as  
 main.jitl
 ```
-import ... from "./lib./my_library/module.jitl"
-import ... from "./lib/my_other_library/module.jitl"
+import * from "./lib./my_library/module.jitl"
+import * from "./lib/my_other_library/module.jitl"
+```
+
+### Example 6
+You can use the `as` keyword to change the name of an identifer if importing a module that exports an object.
+library.jitl
+```
+export {
+	a: 1,
+	b: 2,
+	c: 3
+}
+```
+main.jitl
+```
+import a as x, b as y, c as z from "./library"
+```
+
+### Example 7
+Lastly you can put the first part of the import statement in curly braces just because it can make the code easier to read
+library.jitl
+```
+import { a as x, b as y, c as z } from "./library"
+import { * } from "./library"
+import { stuff } from "./library"
 ```
 
 ### arithmetic operators
