@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>JITLang</title>
+
+    <script src="./ast_generator.js"></script>
+    <script src="./interpreter.js"></script>
+</head>
+<body>
+    
+    <script type="text/jitlang">
+
+    </script>
+            
+    <script>
+let code = `
+    // class MyClass {
+    //     MyClass() {
+    //         print("Created");
+    //     }
+
+    //     sayHi() {
+    //         print("Hello World!");
+    //     }
+    // }
+    
+    // // recursive function that doubles a number
+    // fn MUL2(int a) int {
+    //     if (a <= 0) {
+    //         return <int> 0;
+    //     }
+    //     return 2 + MUL2(a - 1);
+    // }
+
+    // let checkIsPrime = (int num) => bool {
+    //     // check if is prime
+    //     let isPrime = true;
+    //     if (num % 2 == 0 || num % 3 == 0) {
+    //         isPrime = false;
+    //     } else {
+    //         let i = 5;
+    //         let sqNum = sqrt(num);
+    //         while (i <= sqNum) {
+    //             if (num % i == 0 || num % (i + 2) == 0) {
+    //                 isPrime = false;
+    //                 break;
+    //             }
+    //             i += 6;
+    //         }
+    //     }
+    //     return isPrime;
+    // };
+
+    // let start = millis();
+
+    // for (let i = 0; i < 7; i += 1) {
+    //     println(i)
+    //     if (i == 3) {
+    //         break;
+    //     }
+    //     // println(i + ": " + MUL2(i + 0.5) + " " + checkIsPrime(i));
+    // }
+
+    // new MyClass().sayHi
+
+    // class Person {
+    //     new(String name) {
+    //         this.name = name;
+    //     }
+    //     greet() {
+    //         println(this.name);
+    //     }
+    // }
+
+    // let Alice = new Person("Alice");
+    // let Bob = new Person("Bob");
+
+    // Alice.greet = Bob.greet;
+    // Alice.greet();
+
+    // println(bool)
+
+    fn myFunc(String name) {
+        println(name)
+    }
+
+    fn callIt(Function func, String arg) {
+        func(arg)
+    }
+
+    callIt(myFunc, "Hello World")
+
+    // int end = millis();
+    // println("executed in " + (end - start) + " milliseconds");
+`;
+
+let tokens = JITLang.tokenize(code);
+console.log(tokens)
+
+let AST = JITLang.createAST(tokens);
+console.log(JSON.stringify(AST, "", "    "))
+
+let interpreter = JITLang.createInterpreter();
+console.log(interpreter)
+
+interpreter.eval(AST);
+
+// let scriptTags = document.getElementsByTagName("script");
+// for (var i = 0; i < scriptTags.length; i++) {
+//     if (scriptTags[i].type === "text/jitlang") JITLang.run(scriptTags[i].innerHTML);
+// }
+    </script>
+    
+</body>
+</html>
