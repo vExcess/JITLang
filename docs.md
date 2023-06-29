@@ -1,5 +1,5 @@
 ### Garbage Collection
-JITLang is garbage collected by default, but by using the `#disable-gc` compiler flag the garbage collection can be turned off for maximum execution speed which gives the programmer full responsibility of managing their own memory using the `new` and `free` keywords.
+JITLang is garbage collected by default, but by using the `#disable-gc` compiler flag the garbage collection can be turned off for maximum performance which gives the programmer full responsibility of managing their own memory using the `new` and `free` keywords.
 
 ## Semicolons
 Some think semicolons ought to be mandatory while others frown upon them. JavaScript says both are good. However the way JavaScript did it is absolutely awful. While JS makes semicolons technically optional; the use or lack thereof can drastically change the meaning of the code which very often leads to frustrating bugs. JITLang on the other hand makes semicolons completely optional, meaning they are only for asthetics. Unlike JS, the usage or lack of semicolons makes no change to the meaning of the code.
@@ -242,10 +242,6 @@ let tim = Person("Tim");
 let timSayHi = tim.sayHi;
 timSayHi(); // prints out "Tim"
 ```
-
-## Garbage Collection
-By default JITLang is garbage collected. Implementations are free to use a reference counting or a mark-sweep style garbage collection. The official JITLang
-runtime uses a sweep algorithm. Despite having garbage collection, JITLang allows the programmer to manage their own memory using `new` and `free`. JITLang also allows the programmer to completely disable garbage collection using a compiler flag to give the programmer full control over memory for maximum performance.
 
 ## Structs
 Structs are shorthand classes that don't contain methods. They are meant for creating values that are grouped together, but unlike classes they don't have constructors, inheritance, operator overloading, or methods. To create a new instance of a struct call the name of the struct as if it were a class and provide it values cooresponding to the variables in the struct. These values are assigned in the order that the variables were declared in the structs definition.
