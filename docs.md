@@ -11,7 +11,7 @@ Some think semicolons ought to be mandatory while others frown upon them. JavaSc
 
 ## Special Words
 ### Keywords
-let, const, if, else, do, while, for, struct, class, private, static, super, extends, inherit, enum, try, catch, throw, return, switch, case, default, break, continue, new, this, true, false, Infinity, import, export, from, as, async, await, typeof
+let, const, if, else, do, while, for, struct, class, private, static, super, extends, inherit, enum, try, catch, throw, return, switch, yield, case, default, break, continue, new, this, true, false, Infinity, import, export, from, as, async, await, typeof
 ### Built in data types
 bool, byte, short, char, int, uint, long, ulong, float, double, void, null, BigInt  
 Object, Array, Function, Struct, Class, String
@@ -1028,27 +1028,27 @@ Chaining many if statements together can be tedious and messy. Therefore the swi
 switch (myValue) {
 	case 1:
 		println("myValue equals 1");
-		return;
+		yield;
 	case 2:
 		println("myValue equals 2");
-		return;
+		yield;
 	default:
 		println("myValue was neither 1 nor 2");
-		return;
+		yield;
 }
 ```
-The switch statement starts at the top case and if the provided value matches the value following the `case` keyword then it evaluates the code following it. If the code after the case returns then the switch statement is exited and no further conditions are evaluated. However if there is no return statement then it falls through and checks the next case. To demonstrate this idea
+The switch statement starts at the top case and if the provided value matches the value following the `case` keyword then it evaluates the code following it. If the code after the case returns then the switch statement is exited and no further conditions are evaluated. However if there is no yield statement then it falls through and checks the next case. To demonstrate this idea
 ```
 switch (1) {
 	case 1:
 		println("1");
-		return;
+		yield;
 	case 2:
 		println("2");
-		return;
+		yield;
 	default:
 		println("any");
-		return;
+		yield;
 }
 // the above switch statement prints:
 /*
@@ -1070,13 +1070,13 @@ switch (1) {
 any
 */
 ```
-Unlike most languages which use `break` JITLang only uses `return` to exit switch statements. Switch statements also return a value and return void if not value is returned
+Unlike most languages which use `break` JITLang only uses `yield` to exit switch statements. Switch statements also return a value and return void if not value is returned
 ```
 let res = switch (2) {
 	case 1:
-		return "a";
+		yield "a";
 	case 2:
-		return "b";
+		yield "b";
 };
 println(res); // prints "b"
 ```
@@ -1085,11 +1085,11 @@ All variables declared inside of a switch statement are in the same scope. Howev
 switch (val) {
 	case 1: {
 		let test = 1;
-		return;
+		yield;
 	}
 	case 2: {
 		let test = 2; // YAY! this is no longer an error
-		return;
+		yield;
 	}
 }
 ```
