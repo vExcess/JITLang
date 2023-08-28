@@ -11,7 +11,7 @@ Some think semicolons ought to be mandatory while others frown upon them. JavaSc
 
 ## Special Words
 ### Keywords
-let, const, if, else, do, while, for, struct, class, private, static, super, extends, inherit, enum, try, catch, throw, return, switch, yield, case, default, break, continue, new, this, true, false, Infinity, import, export, from, as, async, await, typeof
+var, let, if, else, do, while, for, struct, class, private, static, super, extends, inherit, enum, try, catch, throw, return, switch, yield, case, default, break, continue, new, this, true, false, Infinity, import, export, from, as, async, await, typeof
 ### Built in data types
 bool, byte, short, char, int, uint, long, ulong, float, double, void, null, BigInt  
 Object, Array, Function, Struct, Class, String
@@ -46,26 +46,26 @@ Variables are created in the format
 ```
 type variableName = value; // this is the general syntax
 int idk = 1; // variable declared with C-based data type name
-let idk = 3; // JITLang has automatic type detection so it's not necessary to give the variable an explicit type
+var idk = 3; // JITLang has automatic type detection so it's not necessary to give the variable an explicit type
 ```
 Rules for naming identifiers
 - identifiers can contain letters, digits, underscores, and dollar signs.
 - identifiers cannot begin with a number
 - identifiers are case-sensitive
 - Reserved words cannot be used as identifiers.
-If you use `let` rather than a specific type the compiler will automatically detect the variable's data type. If the variable is left uninitialized it will hold the value of `void` until assigned a value. Assigning a value to a variable whose's data types don't match causes JITLang to attempt to implicitly cast the value and throws a type error if it fails. Although you can't change a variable's data type, you can declare a new variable with the same identifer to shadow the old variable. Shadowing a variable will throw a compiler warning to alert the programmer about potential bugs. Even though it throws a warning the code will still compile and run perfectly fine. Using the `#allow-shadowing` compiler flag will disable this warning. If the variable is to be a constant you can use the `const` modifier ex: `const int a = 1;`. If the variable is being declared with modifiers (const, private, static, export) and the variable type is unspecified then you can leave out the `let` ex: `const a = 1;`. In addition modifiers don't necessarily need to be behind the data type. Both `const int a = 1;` and `int const a = 1;` are perfectly valid, but I think you're weird if you use the later.
+If you use `var` or `let` rather than a specific type the compiler will automatically detect the variable's data type. If the variable is left uninitialized it will hold the value of `void` until assigned a value. Assigning a value to a variable whose's data types don't match causes JITLang to attempt to implicitly cast the value and throws a type error if it fails. Although you can't change a variable's data type, you can declare a new variable with the same identifer to shadow the old variable. Shadowing a variable will throw a compiler warning to alert the programmer about potential bugs. Even though it throws a warning the code will still compile and run perfectly fine. Using the `#allow-shadowing` compiler flag will disable this warning. If the variable is to be a constant you can use the `let` modifier ex: `let int a = 1;`. If the variable is being declared with modifiers (let, private, static, export) and the variable type is unspecified then you can leave out the `var` ex: `let a = 1;`. In addition modifiers don't necessarily need to be behind the data type. Both `let int a = 1;` and `let int a = 1;` are perfectly valid, but I think you're weird if you use the later.
 Accessing a variable that hasn't been declared throws a reference error. All variables are block scoped
 ```
 {
-	let a = 1;
-	let b = 2;
+	var a = 1;
+	var b = 2;
 	a // 1
 	b // 2
 	{
 		a // 1
 		b // 2
 		a = 3;
-		let b = 4;
+		var b = 4;
 		a // 3
 		b // 4
 	}
@@ -101,9 +101,9 @@ JITLang's implicit casting rules are simple. All numbers can be cast to any othe
 ### Literal Casting Rules
 Any number literals are a double if it has decimal points, or is an int if there are no decimal points.
 ```
-let num = 1; // num is an int
-let num = 1.0; // num is a double
-let num = 1.; // also a double; trailing decimals are allowed
+var num = 1; // num is an int
+var num = 1.0; // num is a double
+var num = 1.; // also a double; trailing decimals are allowed
 ```
 If you try implicitly casting anything not following the rules above then a type error will be throw.
 
@@ -118,7 +118,7 @@ Classes are created like so:
 class Animal {
 	int age = 0; // variable declarations
 	private name; // private variables
-	static const needsOxygen = true; // static makes a property/method belong to the class rather than an instance of the class
+	static let needsOxygen = true; // static makes a property/method belong to the class rather than an instance of the class
 	new(String n) { // constructor
 		name = n; // define object properties
 		getName(); // call methods
@@ -134,7 +134,7 @@ class Animal {
 ```
 The constructor of a class is written using `new` as an identifier. The destructor of a class is written using `free` as an identifier. Using the `free` keyword like so `free someInstance` on an instance will call the instance's `free` method if it exists and then deallocate the object from memory. Instances of classes can be created by calling the class's constructor with or without the `new` keyword as in `Thing()` or `new Thing()`. The difference is that when created without `new` the instance will be removed from memory after the scope it was declared in ends. Any references to the object will be replaced with null. However when created using the `new` keyword, the instance will persist indefinitely even after the scope it was declared in ends. When the garbage collector deallocates an object its free method is not called. Calling a object's free method does not deallocate the object from memory. Calling `new myClass().new()` is the same as `myClass()` and calling `new (new myClass().new)()` is the same as `new myClass()` but if you do so then you are clearly demented. By default properties/methods are public, but can be made private using the "private" keyword.
 
-Multiple inheritance is supported. If a class has two parent classes with the same property/method it will inherit from the last parent. When creating properties without a explicit type in a class the `let` is excluded. The constructors of the parent classes will be available to be called from the classes constructor. It is not necessary to call a parent's constructor. If a parent's constructor is not called then the child instance will still recieve the global constant properties and methods from the parent, however the parent's constructor will not be called. However despite the parent's constructor not being called, the variables and methods from the parent class will still exist on the child instance. Accessing a property that doesn't exist on on Object will throw a ReferenceError.
+Multiple inheritance is supported. If a class has two parent classes with the same property/method it will inherit from the last parent. When creating properties without a explicit type in a class the `var` is excluded. The constructors of the parent classes will be available to be called from the classes constructor. It is not necessary to call a parent's constructor. If a parent's constructor is not called then the child instance will still recieve the global constant properties and methods from the parent, however the parent's constructor will not be called. However despite the parent's constructor not being called, the variables and methods from the parent class will still exist on the child instance. Accessing a property that doesn't exist on on Object will throw a ReferenceError.
 
 Properties of an Object are accessed using the dot operator `.`, but can also be accessed using the brackets operator `[key]`
 ```
@@ -238,8 +238,8 @@ class Person {
 	}
 }
 
-let tim = Person("Tim");
-let timSayHi = tim.sayHi;
+var tim = Person("Tim");
+var timSayHi = tim.sayHi;
 timSayHi(); // prints out "Tim"
 ```
 
@@ -251,7 +251,7 @@ struct myStruct {
 	y;
 	z;
 }
-let vec = new myStruct(1, 2, 3);
+var vec = new myStruct(1, 2, 3);
 
 struct typedStruct {
 	int x;
@@ -305,7 +305,7 @@ struct myStruct {
 	z;
 }
 
-let example = myStruct {
+var example = myStruct {
 	x: 1,
 	y: 10,
 	z: 100
@@ -322,7 +322,7 @@ class Thing {
 	}
 }
 
-let example = new Thing {
+var example = new Thing {
 	a: 1,
 	c: 100,
 	b: 10,
@@ -380,16 +380,16 @@ enum IpAddr {
 	}
 }
 
-let home = new IpAddr.v4("127.0.0.1");
-let loopback = IpAddr.v6("::1");
-let thing = IpAddr.iDunno("haha").lol;
+var home = new IpAddr.v4("127.0.0.1");
+var loopback = IpAddr.v6("::1");
+var thing = IpAddr.iDunno("haha").lol;
 ```
 
 ## Arrays
 Arrays are a special type of Object where each property is an int rather than a String. Arrays can only store one type of data (eg: you cannot store ints and floats in the same array). Like with classes Arrays be be instantiated with or without the `new` keyword resulting in a locally persisting variable or a permanantly persisting variable respectively. No characters (including spaces) are allowed between the array's identifier and the open bracket. Arrays are created with the following syntaxes:
 ```
 // auto detect array type (in this case int[])
-let arr = [1, 2, 3];
+var arr = [1, 2, 3];
 
 // specify array type.
 int[] arr = [1, 2, 3];
@@ -485,7 +485,7 @@ fn add(a, b) {
 }
 
 // untyped function expression being assigned to a variable (can return any type)
-let add = fn (a, b) {
+var add = fn (a, b) {
 	return a + b
 };
 
@@ -496,10 +496,10 @@ Function add = (a, b) => a + b;
 fn add(float a, float b) float {
 	return a + b
 }
-let f = fn(float a, float b) float {
+var f = fn(float a, float b) float {
 	return a + b
 };
-let f = (float a, float b) => float {
+var f = (float a, float b) => float {
 	a + b
 };
 ```
@@ -507,7 +507,7 @@ The types in arrow functions must be after the arrow. Function declarations are 
 ```
 myFunction(1, 2, 3);
 ```
-The identifier `main` is a special function name that if declared in the top level scope will get called without you calling it. Although JITLang lets you declare a main function, it is not necessary to do so.
+The identifier `main` is a special function name that if declared in the top level scope will get called without you calling it. Although JITLang vars you declare a main function, it is not necessary to do so.
 ```
 fn main(String[] args) {
 	// this function gets called automatically when the program starts without the programmer needing to call it.
@@ -564,12 +564,12 @@ class vec3 {
 	}
 }
 
-let myVec = vec3(1, 2, 3) + vec3(4, 5, 6); // results in vec3(5, 7, 9)
-let myVec = vec3(0, 0, 0) + 1; // results in vec3(1, 1, 1)
-let myVec = vec3(0, 0, 0) + "Hello World"; // !!!!! ERROR !!!!! throws "vec3 cannot be added with non vectors"
+var myVec = vec3(1, 2, 3) + vec3(4, 5, 6); // results in vec3(5, 7, 9)
+var myVec = vec3(0, 0, 0) + 1; // results in vec3(1, 1, 1)
+var myVec = vec3(0, 0, 0) + "Hello World"; // !!!!! ERROR !!!!! throws "vec3 cannot be added with non vectors"
 
 // The order in which the operands are operated on does matter. However if the first operand doesn't have any overloaded operators the VM will check for overloaded operators on the second operand before throwing a type error. This means that the vec3 will work regardless of the order in this case.
-let myVec = 1 + vec3(0, 0, 0); // results in vec3(1, 1, 1). So much more readable and concise than doing something like vec3.add(vec3(0, 0, 0), 1)
+var myVec = 1 + vec3(0, 0, 0); // results in vec3(1, 1, 1). So much more readable and concise than doing something like vec3.add(vec3(0, 0, 0), 1)
 ```
 
 ### Returning from a function
@@ -791,20 +791,20 @@ myFunc().then((res) => {
 ## Loops
 A while loop continues until the condition is met. They are declared like so
 ```
-let i = 0;
+var i = 0;
 while (i < 10) {
 	i++;
 }
 ```
 A variation of the while loop is the do/while loop. The difference is that the the do block is executed once before the condition is evalated compared to a normal while loop where the body is executed only after the condition has been evaluated.
 ```
-let i = 0;
+var i = 0;
 do {
 	stuff();
 	i++;
 } while (i < 10);
 // is functionally equivelant to
-let i = 0;
+var i = 0;
 stuff();
 i++;
 while (i < 10) {
@@ -819,12 +819,12 @@ Expression 3 is executed (every time) after the code block has been executed.
 Each expression can be left blank like so `for (;;) {` however if expression 2 is left blank then it always evaluates to false resulting in an infinite loop
 ```
 // Multiple variables can be declared in a single expression
-for (let i = 0, j = 10; i < j; i++) {
+for (var i = 0, j = 10; i < j; i++) {
 	doStuff();
 }
 // the above for loop is functionally equivelant to the following while loop
 {
-	let i = 0, j = 10;
+	var i = 0, j = 10;
 	while (i < j) {
 		doStuff();
 		i++;
@@ -833,26 +833,26 @@ for (let i = 0, j = 10; i < j; i++) {
 ```
 Some more syntactical sugar is the `for in` loop
 ```
-for (let prop in thing) {
+for (var prop in thing) {
 	println(prop);
 }
 // if arr is an Array then the above for in loop is functionally equivelant to the following loop
 {
 	// note that the array is cached so that you can't change its value or length during the loop body
-	let thingCache = thing, lenCache = thingCache.length;
-	for (let i = 0; i < lenCache; i++) { // the interator variable (i) will not be exposed to the loop body in a for in loop
+	var thingCache = thing, lenCache = thingCache.length;
+	for (var i = 0; i < lenCache; i++) { // the interator variable (i) will not be exposed to the loop body in a for in loop
 		{
-			let prop = i;
+			var prop = i;
 			println(prop);
 		}
 	}
 }
 // if thing is an Object then it is functionally equivelant to
 {
-	let keysCache = Object.keys(thing); // keysCache and i are not exposed to programmer
-	for (let i = 0; i < keysCache.length; i++) {
+	var keysCache = Object.keys(thing); // keysCache and i are not exposed to programmer
+	for (var i = 0; i < keysCache.length; i++) {
 		{
-			let prop = keysCache[i];
+			var prop = keysCache[i];
 			println(prop);
 		}
 	}
@@ -860,25 +860,25 @@ for (let prop in thing) {
 ```
 The `for of` loop is almost identical to the `for in` loop, except that it gives the user the item in the Array/Object rather than the index/key
 ```
-for (let item of thing) {
+for (var item of thing) {
 	println(item)
 }
 // if arr is an Array then the above for in loop is functionally equivelant to the following loop
 {
-	let thingCache = thing, lenCache = thingCache.length;
-	for (let i = 0; i < lenCache; i++) {
+	var thingCache = thing, lenCache = thingCache.length;
+	for (var i = 0; i < lenCache; i++) {
 		{
-			let item = thingCache[i];
+			var item = thingCache[i];
 			println(item);
 		}
 	}
 }
 // if thing is an Object then it is functionally equivelant to
 {
-	let thingCache = thing, keysCache = Object.keys(thing);
-	for (let i = 0; i < keysCache.length; i++) {
+	var thingCache = thing, keysCache = Object.keys(thing);
+	for (var i = 0; i < keysCache.length; i++) {
 		{
-			let item = thingCache[keysCache[i]];
+			var item = thingCache[keysCache[i]];
 			println(item);
 		}
 	}
@@ -900,7 +900,7 @@ In the case of do/while loops the braces are required and cannot be left out. No
 ### Control flow in loops
 **break**  the break keyword exits the innermost loop that it is called in. If the loop that is exited is inside a parent loop then the parent loop will continue to iterate.
 ```
-for (let i = 0; i < 5; i++) {
+for (var i = 0; i < 5; i++) {
 	if (i == 2) break;
 	println(i);
 }
@@ -911,7 +911,7 @@ for (let i = 0; i < 5; i++) {
 ```
 **continue** the continue keyword skips to the end of the loops iteration
 ```
-for (let i = 0; i < 5; i++) {
+for (var i = 0; i < 5; i++) {
 	if (i == 2) continue;
 	println(i);
 }
@@ -939,8 +939,8 @@ println(3);
 ```
 the `continue` keyword works similarily but can only be used with loop statements
 ```
-myLabel: for (let i = 0; i < 3; i++) {
-	for (let j = 100; j > 0; j--) {
+myLabel: for (var i = 0; i < 3; i++) {
+	for (var j = 100; j > 0; j--) {
 		if (j == 98) continue myLabel;
         	println(i + " " + j);
 	}
@@ -1009,16 +1009,16 @@ if (a) {
 Note that without brackets only a statement can be inside the if statement not a declaration.
 ```
 // !!!ERROR!!!
-if (a) let b = 1;
+if (a) var b = 1;
 // !!!ERROR!!!
 if (a) fn myFunc() {}
 
 // OK
-let b;
+var b;
 if (a) b = 1;
 
 // OK
-let b;
+var b;
 if (a) b = fn myFunc() {}
 ```
 
@@ -1072,7 +1072,7 @@ any
 ```
 Unlike most languages which use `break` JITLang only uses `yield` to exit switch statements. Switch statements also return a value and return void if not value is returned
 ```
-let res = switch (2) {
+var res = switch (2) {
 	case 1:
 		yield "a";
 	case 2:
@@ -1084,11 +1084,11 @@ All variables declared inside of a switch statement are in the same scope. Howev
 ```
 switch (val) {
 	case 1: {
-		let test = 1;
+		var test = 1;
 		yield;
 	}
 	case 2: {
-		let test = 2; // YAY! this is no longer an error
+		var test = 2; // YAY! this is no longer an error
 		yield;
 	}
 }
@@ -1146,10 +1146,10 @@ Unlike loops and if statements a try/catch/finally statement must have braces. A
 ## Strings
 `String`s are special char[] Arrays. Unlike JavaScript Strings are not primitives and are passed around by reference rather than value. Because Strings are Arrays, individual characters can be read and written to using the [] operator. Accessing an index that doesn't exist is a runtime error. Most of the time you want to check if two Strings contain the same character rather than checking if they are the same Object. For this reason `==` checks if two Strings contain the same characters. If you want to check if two Strings are exactly the same object use `str1 === str2`. Calling `String()` on any value attempts to cast it to a String.
 ```
-let str = "123"; // stack allocated string
-let str2 = new "123"; // heap allocated string
-let str3 = String("456") // stack allocated
-let str3 = new String("456") // heap allocated
+var str = "123"; // stack allocated string
+var str2 = new "123"; // heap allocated string
+var str3 = String("456") // stack allocated
+var str3 = new String("456") // heap allocated
 
 str == str2 // true because the Strings contain the same characters
 str === str2 // false because they are not the exact same Object
@@ -1205,7 +1205,7 @@ Single quotes ('') are used for creating a char not a String. Putting more than 
 ```
 char c = 'a'; // this is not a string
 String s = new String("a"); // this is a String
-let b = "TEST";
+var b = "TEST";
 String s = `this
 is a ${b}
 multi-line String!`; // "this\nis a TEST\nmulti-line string!"
@@ -1238,7 +1238,7 @@ Other special escape sequences are for representing non-ASCII characters in a St
 ## Object(s)
 JITLang also allows you to create anonymous objects. Objects are created in JavaScript Object Notation.
 ```
-let myValue = "exampleKey";
+var myValue = "exampleKey";
 Object myObj = {
 	long key1: 123, // keys follow the same rules as all other identifiers; you can put a type before the identifier to set the values type
 	"456": 789, // keys must be Strings, you can put the identifier in a String literal
@@ -1255,19 +1255,19 @@ myObj.exampleKey = 9999; // sets property to new value
 Getting or setting a property of an Object that doesn't exist throws a runtime error.
 You can create a new Object that inherits properties of an old Object using the spread operator like so:
 ```
-let oldObj = {
+var oldObj = {
 	a: 1,
 	b: 2
 }
-let newObj = {
+var newObj = {
 	...oldObj,
 	c: 3
 }
 ```
 If you are putting variables into an object you can do it like so. However this feels very redundant
 ```
-let a = 1, b = 2;
-let obj = {
+var a = 1, b = 2;
+var obj = {
 	a: a,
 	b: b,
 	c: 3
@@ -1275,8 +1275,8 @@ let obj = {
 ```
 As a result you can also use the shorthand syntax
 ```
-let a = 1, b = 2;
-let obj = {
+var a = 1, b = 2;
+var obj = {
 	a,
 	b,
 	c: 3
@@ -1292,19 +1292,19 @@ An Object declaration can't directly use the same key twice
 ```
 However you can when using the `[variable]` declaration syntax or when using the spread syntax. Note in the following example that the order matters and the end of the delcaration gets preference over the beginning.
 ```
-let oldObj = {
+var oldObj = {
 	a: 1
 }
-let newObj = {
+var newObj = {
 	...oldObj,
 	a: 2
 }
 newObj.a // 2
 
-let oldObj = {
+var oldObj = {
 	a: 1
 }
-let newObj = {
+var newObj = {
 	a: 2,
 	...oldObj
 }
@@ -1328,8 +1328,8 @@ BigInts are integers of arbitrarily big size. BigInts are a primitive data type.
 // BigInts can be created using the BigInt function
 BigInt a = BigInt("123"); // The BigInt function expects Strings
 BigInt b = BigInt(123); // 123 is implicitly cast to a String and then a BigInt
-let c = 123n; // for the sake of concise code adding an "n" after a number converts it into a BigInt
-let d = BigInt("123.99"); // becomes 123 because all floating point data is truncated
+var c = 123n; // for the sake of concise code adding an "n" after a number converts it into a BigInt
+var d = BigInt("123.99"); // becomes 123 because all floating point data is truncated
 ```
 
 ## Module System
@@ -1338,7 +1338,7 @@ A jitl file can export a value and another jitl files can import values from oth
 ### export
 Any type of value can be exported, however only global values can be exported. To export a value simply use the `export` keyword followed by an expression. Note that a file can only contain a single export, trying to export more than one item per file will throw a compiler error. It is convention to use the export at the bottom of your file. To export multiple items use an Array or an Object. Here are some examples of how to use export. Pretend each `// --------------------` is the end of a file the following code block contains multiple files.
 ```
-const num = 123.456;
+let num = 123.456;
 export num;
 // --------------------
 fn someFunc() {
