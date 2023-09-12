@@ -39,7 +39,7 @@
     IDENTIFIER =ID(), TEMPLATE_LITERAL =ID(), NUMBER =ID(),
     
     // Reserved Words
-    FN =ID(), LET =ID(), CONST =ID(), IF =ID(), ELSE =ID(), DO =ID(), 
+    FN =ID(), VAR =ID(), LET =ID(), IF =ID(), ELSE =ID(), DO =ID(), 
     WHILE =ID(), FOR =ID(), STRUCT =ID(), CLASS =ID(), PRIVATE =ID(), 
     STATIC =ID(), SUPER =ID(), EXTENDS =ID(), INHERIT =ID(), 
     ENUM =ID(), TRY =ID(), CATCH =ID(), THROW =ID(), RETURN =ID(), 
@@ -79,7 +79,7 @@
 
         IDENTIFIER, TEMPLATE_LITERAL, NUMBER,
 
-        FN, LET, CONST, IF, ELSE, DO, 
+        FN, VAR, LET, IF, ELSE, DO, 
         WHILE, FOR, STRUCT, CLASS, PRIVATE, 
         STATIC, SUPER, EXTENDS, INHERIT, 
         ENUM, TRY, CATCH, THROW, RETURN, 
@@ -266,24 +266,16 @@
         }
     }
 
-    if (typeof JITLang === "undefined") {
-        if (typeof window === "undefined") {
-            // node support
-            globalThis.JITLang = {};
-        } else {
-            // browser support
-            window.JITLang = {};
-        }
-    }
-
+    let JITLang = {};
+    
     JITLang.tokenize = function(code, reportError=console.error) {
         /*
             tokenize converts a string of code into recognizable individual operators and literals.
         */
 
         const keywords = {
+            "var": VAR, 
             "let": LET, 
-            "const": CONST, 
             "if": IF, 
             "else": ELSE, 
             "do": DO, 
@@ -575,7 +567,34 @@
             }
         }
 
+        // convert import statements to function calls
+        for (let i = 0; i < tokens.length; i++) {
+            let tok = tokens[i];                
+            if (tok.TokType === IMPORT) {
+                // find from
+                let ptr = i + 1;
+                while (ptr < tokens.length && tokens[ptr].TokType !== FROM) {
+                    ptr++;
+                }
+
+                let importBody = tokens.slice(i + 1, ptr);
+
+                tokens[i].TokType = LET;
+                tokens[ptr].TokType = EQUAL;
+
+                let strTok = tokens[ptr + 1];
+                if (strTok.TokType !== STRING) {
+                    throwError("CompilerError", "import statement from non-string");
+                }
+
+                let lineNum = strTok.line;
+                tokens[ptr + 1] = new Tok(IDENTIFIER, "dimport", lineNum);
+                tokens.splice(ptr + 2, 0, new Tok(LEFT_PAREN, "(", lineNum), strTok, new Tok(RIGHT_PAREN, ")", lineNum));
+            }
+        }
+
         let current = 0, quit = false;
+        let previousVarMods = [];
 
         // utils
         const isAtEnd = () => current >= tokens.length;
@@ -613,7 +632,7 @@
                     case CLASS:
                     case ARROW:
                     case FN:
-                    case LET:
+                    case VAR:
                     case FOR:
                     case IF:
                     case WHILE:
@@ -634,7 +653,7 @@
             // console.log("PRIM", tokens[current])
             if (!isAtEnd()) {
                 let currTokType = tokens[current].TokType;
-                if ([FALSE, TRUE, NULL, VOID, NUMBER, STRING].includes(currTokType)) {
+                if ([FALSE, TRUE, NULL, VOID, NUMBER, STRING, VOID].includes(currTokType)) {
                     current++;
                     return new Expr("literal", peekPrev());
                 } else if (currTokType === LEFT_PAREN) {
@@ -648,7 +667,7 @@
                     return new Expr("variable", varTok.TokType, varTok.lexeme);
                 } else if (currTokType === THIS) {
                     current++;
-                    console.log(compilerScopes)
+                    // console.log(compilerScopes)
                     if (!compilerScopes.includes("method") && !compilerScopes.includes("constructor")) {
                         throwError("Illegal this keyword - this isn't allowed outside of methods");
                     }
@@ -682,7 +701,7 @@
             }
 
             let temp = new Expr("call", callee, paren, args);
-            console.log("FFFFFFFF", JSON.stringify(temp, "", "    "), callee, paren, args)
+            // console.log("FFFFFFFF", JSON.stringify(temp, "", "    "), callee, paren, args)
             return temp;
         }
 
@@ -693,10 +712,10 @@
                 if (match(LEFT_PAREN)) {
                     expr = finishCall([...compilerScopes], expr);
                 } else if (match(DOT)) {
-                    console.log("EEEEEEEEEEEEEEEEEE", expr)
+                    // console.log("EEEEEEEEEEEEEEEEEE", expr)
                     let name = consume(IDENTIFIER, "Expect property name after '.'");
                     expr = new Expr("get", expr, name);
-                    console.log("DOTTT", JSON.stringify(expr))
+                    // console.log("DOTTT", JSON.stringify(expr))
                 } else {
                     break;
                 }
@@ -744,11 +763,11 @@
         }
 
         function assignment(compilerScopes) {
-            console.log("ASSIGNBEFORE", tokens.slice(current, current + 10))
+            // console.log("ASSIGNBEFORE", tokens.slice(current, current + 10))
 
             let expr = term([...compilerScopes], 0);
 
-            console.log("ASSIGN", expr, tokens.slice(current, current + 10))
+            // console.log("ASSIGN", expr, tokens.slice(current, current + 10))
             
             if (match(EQUAL)) {
                 let equal = peekPrev();
@@ -814,7 +833,7 @@
         }
 
         function expression(compilerScopes) {
-            console.log("EXPR, COMPT SOP", compilerScopes)
+            // console.log("EXPRESSION", tokens.slice(current, current + 10))
             return assignment([...compilerScopes]);
         }
 
@@ -842,7 +861,14 @@
         function block(compilerScopes) {
             let statements = [];
             while (!check(RIGHT_BRACE) && !isAtEnd()) {
-                statements.push(declaration([...compilerScopes]));
+                let res = declaration([...compilerScopes]);
+                if (Array.isArray(res)) {
+                    for (let i = 0; i < res.length; i++) {
+                        statements.push(res[i]);
+                    }
+                } else {
+                    statements.push(res);
+                }
             }
             consume(RIGHT_BRACE, "Expect '}' after block.");
             return statements;
@@ -862,7 +888,7 @@
             let initializer;
             if (match(SEMICOLON)) {
                 initializer = null;
-            } else if (match(LET)) {
+            } else if (match(VAR)) {
                 initializer = variableDeclaration([...compilerScopes, "let"]);
             } else {
                 initializer = expressionStatement([...compilerScopes]);
@@ -926,7 +952,7 @@
             if (match(IF)) return ifStatement([...compilerScopes]);
             if (match(RETURN)) return returnStatement([...compilerScopes]);
             if (match(BREAK)) {
-                console.log("BREAK", [...compilerScopes])
+                // console.log("BREAK", [...compilerScopes])
                 if (!compilerScopes || !compilerScopes.includes("loop")) {
                     throwError("SyntaxError", "Illegal break statement");
                     quit = true;
@@ -939,19 +965,22 @@
         }
 
         function variableDeclaration(compilerScopes, modifiers) {
+            // console.log("variableDeclaration", tokens.slice(current))
             let name = consume(IDENTIFIER, "Expect variable name.");
             let initializer = null;
-            if (match(EQUAL)) initializer = expression([...compilerScopes]);
-            if (check(SEMICOLON)) consume(SEMICOLON);
-            // if (check(COMMA)) {
-            //     consume(COMMA);
-            //     variableDeclaration(compilerScopes);
-            // }
+            if (match(EQUAL)) {
+                initializer = expression([...compilerScopes]);
+            } else {
+                initializer = new Expr("literal", new Tok(VOID, "void", -1));
+            }
+            if (check(SEMICOLON)) {
+                consume(SEMICOLON);
+            }
             return new Stmt("variable", modifiers, name, initializer);
         }
 
         function functionDefinition(compilerScopes, kind) {
-            console.log("FUNC", tokens.slice(current, current + 10))
+            // console.log("FUNC", tokens.slice(current, current + 10))
             let name = null, parameters = [];
             if (kind === "method" && check(NEW)) {
                 name = consume(NEW);
@@ -1038,24 +1067,51 @@
                 if (match(ARROW)) return functionDefinition([...compilerScopes], "expression");
 
                 // variable declaration
-                if (check(LET) || check(CONST) || (check(IDENTIFIER) && (checkAhead(EQUAL) || checkAhead(IDENTIFIER)))) {
+                if (check(VAR) || check(LET) || (check(IDENTIFIER) && checkAhead(IDENTIFIER))) {
                     let j = 1;
                     let modifiers = [peek().lexeme];
-                    while (current + j + 1 < tokens.length && checkAhead(IDENTIFIER, j) && !checkAhead(EQUAL, j + 1)) {
-                        modifiers.push(peekAhead(j).lexeme);
-                        j++;
+                    let varType = null;
+                    let hasType = false;
+                    let identifierCount = 0;
+                    
+                    while (current + identifierCount + 1 < tokens.length && checkAhead(IDENTIFIER, identifierCount + 1)) {
+                        identifierCount++; // look ahead for future declarations
+                    }
+                    if (identifierCount > 1) {
+                        hasType = true; // check if the declaration has a variable type
+                    }
+                    if ([VAR, LET, PRIVATE].includes(tokens[current + identifierCount + 1].TokType)) {
+                        hasType = false; // if the next token is a variable declarator then current token is the variable name and is untyped
+                    }
+                    if (current + identifierCount + 1 < tokens.length && hasType) {
+                        identifierCount--; // subtract the next expression from variable identifiers
                     }
 
-                    if (modifiers.length > 0 && checkAhead(EQUAL, j + 1)) {
+                    // find variable modifiers
+                    while (identifierCount % 2 === 0 && varType === null && current + j < tokens.length && checkAhead(IDENTIFIER, j) && !checkAhead(EQUAL, j + 1)) {
+                        let modifier = peekAhead(j);
+                        modifiers.push(modifier.lexeme);
+                        if (modifier.TokType === IDENTIFIER) {
+                            varType = modifier.lexeme;
+                        }
+                        j++;
+                    }
+                    // console.log("PARSE", tokens.slice(current), modifiers)
+                    if (modifiers.length > 0/* && checkAhead(EQUAL, j + 1)*/) {
+                        
                         current += j;
-                        return variableDeclaration([...compilerScopes], modifiers);
+                        let declarations = [];
+                        do {
+                            declarations.push(variableDeclaration([...compilerScopes], modifiers));
+                        } while (match(COMMA));
+                        return declarations;
                     }
                 }
                 
                 // statement
                 return statement([...compilerScopes]);
             } catch (e) {
-                console.log(e)
+                // console.log(e)
                 synchronize();
                 return null;
             }
@@ -1064,8 +1120,23 @@
         // parse
         let statements = [];
         while (current < tokens.length && !quit) {
-            statements.push(declaration([]));
+            let res = declaration([]);
+            if (Array.isArray(res)) {
+                for (let i = 0; i < res.length; i++) {
+                    statements.push(res[i]);
+                }
+            } else {
+                statements.push(res);
+            }
         }
         return quit ? [] : statements;
     };
+
+    if (typeof window === "undefined") {
+        // node support
+        module.exports = JITLang;
+    } else {
+        // browser support
+        window.jitlc = JITLang;
+    }
 })();
