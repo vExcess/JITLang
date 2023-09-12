@@ -5,6 +5,14 @@
 */
 
 (() => {
+    let debug = false;
+
+    let http, socketio;
+    if (typeof require !== "undefined") {
+        http = require("http");
+        socketio = require("socket.io");
+    }
+
     // This is the stupidity you must do because JavaScript doesn't have enums >:(
     let idGeneratorIdx = 0, ID = () => { return idGeneratorIdx++; };
 
@@ -39,7 +47,7 @@
     IDENTIFIER =ID(), TEMPLATE_LITERAL =ID(), NUMBER =ID(),
     
     // Reserved Words
-    FN =ID(), LET =ID(), CONST =ID(), IF =ID(), ELSE =ID(), DO =ID(), 
+    FN =ID(), VAR =ID(), LET =ID(), IF =ID(), ELSE =ID(), DO =ID(), 
     WHILE =ID(), FOR =ID(), STRUCT =ID(), CLASS =ID(), PRIVATE =ID(), 
     STATIC =ID(), SUPER =ID(), EXTENDS =ID(), INHERIT =ID(), 
     ENUM =ID(), TRY =ID(), CATCH =ID(), THROW =ID(), RETURN =ID(), 
@@ -79,7 +87,7 @@
 
         IDENTIFIER, TEMPLATE_LITERAL, NUMBER,
 
-        FN, LET, CONST, IF, ELSE, DO, 
+        FN, VAR, LET, IF, ELSE, DO, 
         WHILE, FOR, STRUCT, CLASS, PRIVATE, 
         STATIC, SUPER, EXTENDS, INHERIT, 
         ENUM, TRY, CATCH, THROW, RETURN, 
@@ -131,12 +139,13 @@
         }
 
         define(name, type, value) {
+            if (debug) console.log("ENV DEFINE", name, type, value)
             this.types.set(name, type);
             this.values.set(name, value);
         }
 
         get(name) {
-            console.log("ENV READING", name)
+            if (debug) console.log("ENV READING", name)
             if (this.values.has(name)) {
                 return mkNatObj(this.types.get(name), this.values.get(name));
             }
@@ -157,7 +166,7 @@
         }
 
         assign(name, type, value) {
-            console.log("ENV ASSIGN", name, type, value)
+            if (debug) console.log("ENV ASSIGN", name, type, value)
             if (this.values.has(name)) {
                 this.types.set(name, type);
                 this.values.set(name, value);
@@ -173,7 +182,36 @@
         }
     }
 
-    class JITLangFunction {
+    class JITLFunction {
+        static native(name, types, params, nativeCode, closure, interpreter) {
+            let paramsArr = [];
+            for (let i = 0; i < params.length; i++) {
+                paramsArr.push({
+                    "TokType": 45,
+                    "line": -1,
+                    "lexeme": params[i],
+                    "type": {
+                        "TokType": 45,
+                        "line": -1,
+                        "lexeme": types[i] ? types[i] : "any"
+                    }
+                });
+            }
+            
+            let fxn = new JITLFunction({
+                name: {
+                    lexeme: name
+                },
+                params: paramsArr,
+                returnType: "any"
+            }, closure, interpreter);
+            
+            fxn.isNative = true;
+            fxn.nativeCode = nativeCode;
+            
+            return fxn;
+        }
+        
         constructor(declaration, closure, interpreter) {
             this.declaration = declaration;
             this.closure = closure;
@@ -185,6 +223,18 @@
         }
 
         call(args) {
+            if (this.owner) {
+                args.unshift(mkNatObj("Object", this.owner));
+            }
+            
+            if (this.isNative) {
+                return this.nativeCode(args);
+            }
+
+            if (this.owner) {
+                args.shift();
+            }
+            
             let environment = new Environment(this.closure, this.interpreter);
 
             let params = this.declaration.params;
@@ -199,7 +249,7 @@
                 environment.define(params[i].lexeme, val.type, val.nat);
             }
 
-            console.log("CALLING FN", params)
+            if (debug) console.log("CALLING FN", params)
             
             try {
                 this.interpreter.executeBlock(this.declaration.body, environment);
@@ -225,7 +275,13 @@
         bind(instance) {
             let environment = new Environment(this.closure);
             environment.define("this", instance.type, instance);
-            return new JITLangFunction(this.declaration, environment, this.interpreter);
+            let newFxn = new JITLFunction(this.declaration, environment, this.interpreter);
+            newFxn.owner = instance;
+            if (this.isNative) {
+                newFxn.isNative = true;
+                newFxn.nativeCode = this.nativeCode;
+            }
+            return newFxn;
         }
 
         toString() {
@@ -236,7 +292,7 @@
                 if (param.type) {
                     paramsStr += param.type.lexeme + " ";
                 }
-                console.log(param)
+                if (debug) console.log(param)
                 paramsStr += param.lexeme;
                 if (i < fnDecl.params.length - 1) {
                     paramsStr += ", ";
@@ -250,7 +306,7 @@
         }
     }
 
-    class JITLangClass {
+    class JITLClass {
         name;
         methods;
         interpreter;
@@ -262,11 +318,11 @@
         }
 
         call(args) {
-            return new JITLangInstance(this, args);
+            return new JITLInstance(this, args);
         }
 
         findMethod(name) {
-            console.log("FNDING METH", name, this.methods)
+            if (debug) console.log("FNDING METH", name, this.methods)
             if (name !== "new" && this.methods.has(name)) {
                 return mkNatObj("Function", this.methods.get(name));
             }
@@ -283,7 +339,7 @@
         }
     }
 
-    class JITLangInstance {
+    class JITLInstance {
         jitlclass;
         fields = new Map();
 
@@ -292,11 +348,11 @@
             if (jitlclass.methods.has("new")) {
                 jitlclass.methods.get("new").bind(this).call(args);
             }
-            console.log("CREATED NEW", constructor)
+            if (debug) console.log("CREATED NEW", constructor)
         }
 
         get(name) {
-            console.log("GETTTTTING", this, name)
+            if (debug) console.log("GETTTTTING", this, name)
             if (this.fields.has(name.lexeme)) {
                 return this.fields.get(name.lexeme);
             }
@@ -312,7 +368,7 @@
         }
 
         toString() {
-            return this.jitlclass.name + " instance";
+            return this.jitlclass.name + " {}";
         }
     }
 
@@ -326,30 +382,192 @@
             this.globals = new Environment(undefined, this);
             this.environment = this.globals;
 
-            this.globals.define("sqrt", "Function", {
-                arity: () => 1,
-                call: (args) => {
-                    return mkNatObj("double", Math.sqrt(args[0]));
-                },
-                toString: () => { return "() {...}"; }
-            });
+            
+            const JITLRequest = new JITLClass("HttpRequest", [], this);
 
-            this.globals.define("println", "Function", {
-                arity: () => 1,
-                call: (args) => {
-                    handleOutput(this.stringify(args[0]));
+            const JITLResponseMethods = new Map();
+            JITLResponseMethods.set("write", JITLFunction.native(
+                "write",
+                ["String"],
+                ["data"],
+                (args) => {
+                    // console.log("WRITE", args[0])
+                    args[0].nat.nativeRes.write(args[1].nat);
                     return mkNatObj("void", undefined);
                 },
-                toString: () => { return "() {...}"; }
-            });
+                this.globals,
+                this
+            ));
+            JITLResponseMethods.set("end", JITLFunction.native(
+                "end",
+                [],
+                [],
+                (args) => {
+                    // console.log("WRITE", args[0])
+                    args[0].nat.nativeRes.end();
+                    return mkNatObj("void", undefined);
+                },
+                this.globals,
+                this
+            ));
+            const JITLResponse = new JITLClass("HttpResponse", JITLResponseMethods, this);
 
-            this.globals.define("millis", "Function", {
-                arity: () => 0,
-                call: (args) => {
+            const JITLHttpServerMethods = new Map();
+            JITLHttpServerMethods.set("listen", JITLFunction.native(
+                "listen",
+                ["int", "Function"],
+                ["port", "callback"],
+                (args) => {
+                    http.createServer((req, res) => {
+                        let handler = args[0].nat.get("handler").nat;
+                        let JITLres = new JITLInstance(JITLResponse, []);
+                        JITLres.nativeRes = res;
+                        handler.call([mkNatObj("Request", JITLres), mkNatObj("Response", JITLres)]);
+                    }).listen(args[1].nat, () => {
+                        if (args[2]) {
+                            args[2].nat.call([]);
+                        }
+                    })
+                    return mkNatObj("void", undefined);
+                },
+                this.globals,
+                this
+            ));
+            const JITLHttpServer = new JITLClass("HttpServer", JITLHttpServerMethods, this);
+
+            const JITLHttpMethods = new Map();
+            JITLHttpMethods.set("createServer", JITLFunction.native(
+                "createServer",
+                ["Function"],
+                ["handler"],
+                (args) => {
+                    let server = new JITLInstance(JITLHttpServer, []);
+                    server.set("handler", args[1]);
+                    return mkNatObj("HttpServer", server);
+                },
+                this.globals,
+                this
+            ));
+            const JITLHTTP = new JITLClass("HTTP", JITLHttpMethods, this);
+
+            // tcp stuff
+            const JITLTcpServerMethods = new Map();
+            JITLTcpServerMethods.set("listen", JITLFunction.native(
+                "listen",
+                ["int", "Function"],
+                ["port", "callback"],
+                (args) => {
+                    const io = socketio(http.createServer(()=>{}).listen(args[1].nat, ()=>{}), {
+                        cors: {
+                            origin: false,
+                            methods: ["GET", "POST"]
+                        }
+                    });
+                    io.on("connection", socket => {
+                        let handler = args[0].nat.get("handler").nat;
+                        let JITLres = new JITLInstance(JITLResponse, []);
+                        JITLres.nativeRes = res;
+                        handler.call([mkNatObj("Socket", JITLres)]);
+                    })
+                    return mkNatObj("void", undefined);
+                },
+                this.globals,
+                this
+            ));
+            const JITLTcpServer = new JITLClass("TcpServer", JITLTcpServerMethods, this);
+
+            const JITLTcpMethods = new Map();
+            JITLTcpMethods.set("createServer", JITLFunction.native(
+                "createServer",
+                ["Function"],
+                ["handler"],
+                (args) => {
+                    let server = new JITLInstance(JITLTcpServer, []);
+                    server.set("handler", args[1]);
+                    return mkNatObj("TcpServer", server);
+                },
+                this.globals,
+                this
+            ));
+            const JITLTCP = new JITLClass("TCP", JITLTcpMethods, this);
+
+            this.globals.define("dimport", "Function", JITLFunction.native(
+                "dimport",
+                ["String"],
+                ["module"],
+                (args) => {
+                    switch (args[0].nat) {
+                        case "http": {
+                            if (typeof http !== "undefined") {
+                                return mkNatObj("Object", new JITLInstance(JITLHTTP, []));
+                            } else {
+                                return mkNatObj("void", undefined);
+                            }
+                        }
+                        case "tcp": {
+                            if (typeof socketio !== "undefined") {
+                                return mkNatObj("Object", new JITLInstance(JITLTCP, []));
+                            } else {
+                                return mkNatObj("void", undefined);
+                            }
+                        }
+                        default: {
+                            return mkNatObj("void", undefined);
+                        }
+                    }
+                },
+                this.globals,
+                this
+            ));
+
+            // this.globals.define("sqrt", "Function", {
+            //     arity: () => 1,
+            //     call: (args) => {
+            //         return mkNatObj("double", Math.sqrt(args[0]));
+            //     },
+            //     toString: () => { return "() {...}"; }
+            // });
+
+            this.globals.define("println", "Function", JITLFunction.native(
+                "println",
+                [""],
+                ["args"],
+                (args) => {
+                    for (let i = 0; i < args.length; i++) {
+                        handleOutput(this.stringify(args[i]));
+                    }
+                    return mkNatObj("void", undefined);
+                },
+                this.globals,
+                this
+            ));
+
+            this.globals.define("assert", "Function", JITLFunction.native(
+                "assert",
+                [""],
+                ["a"],
+                (args) => {
+                    if (args[0].nat !== true) {
+                        handleOutput("Assert Failed");
+                        this.processDied = true;
+                        handleError(...args);
+                    }
+                    return mkNatObj("void", undefined);
+                },
+                this.globals,
+                this
+            ));
+
+            this.globals.define("millis", "Function", JITLFunction.native(
+                "millis",
+                [],
+                [],
+                (args) => {
                     return mkNatObj("int", Date.now());
                 },
-                toString: () => { return "() {...}"; }
-            });
+                this.globals,
+                this
+            ));
 
             this.handleError = (...args) => {
                 this.processDied = true;
@@ -419,7 +637,7 @@
             }
             // unprintable non-primitives
             else {
-                return obj.type + " instance";
+                return obj.type + " {}";
             }
         }
 
@@ -432,6 +650,10 @@
             }
             if (typeStr === "String") {
                 return mkNatObj(typeStr, this.stringify(obj));
+            }
+            if (obj.nat instanceof JITLInstance && !["bool", "String", "bool", "byte", "short", "char", "int", "uint", "long", "ulong"].includes(typeStr)) {
+                obj.type = typeStr;
+                return obj;
             }
             throw "VM Error - casting error";
         }
@@ -461,10 +683,10 @@
         visitLiteralExpr(expr) {
             if (this.processDied) return; // stop execution
 
-            console.log("LIT", expr)
+            if (debug) console.log("LIT", expr)
 
             if (expr.ExprType === "function") {
-                return mkNatObj("Function", new JITLangFunction(expr, this.environment, this));
+                return mkNatObj("Function", new JITLFunction(expr, this.environment, this));
             }
 
             switch (expr.value.TokType) {
@@ -480,6 +702,8 @@
                     return mkNatObj("bool", true);
                 case FALSE:
                     return mkNatObj("bool", false);
+                case VOID:
+                    return mkNatObj("void", undefined);
             }
 
             // unreachable
@@ -519,7 +743,7 @@
             let left = this.evaluate(expr.left);
             let right = this.evaluate(expr.right);
 
-            // console.log("BINOP", expr.operator, left, right)
+            // if (debug) console.log("BINOP", expr.operator, left, right)
             switch (expr.operator.TokType) {
                 // math and concatenating operators
                 case PLUS:
@@ -619,7 +843,7 @@
         evaluate(expr) {
             if (this.processDied) return; // stop execution
 
-            console.log("EVAL", expr)
+            if (debug) console.log("EVAL", expr)
             switch (expr.ExprType) {
                 case "binary":
                     return this.visitBinaryExpr(expr);
@@ -634,10 +858,10 @@
                 case "get":
                     return this.visitGetExpr(expr);
                 case "variable":
-                    console.log("READING", this.environment)
+                    if (debug) console.log("READING", expr.name, this.environment)
                     return this.environment.get(expr.name);
                 case "this":
-                    console.log("READING this", this.environment)
+                    if (debug) console.log("READING this", this.environment)
                     return this.environment.get("this");
                 default:
                     return this.visitLiteralExpr(expr);
@@ -650,7 +874,7 @@
             let value = null;
             if (stmt.initializer !== null) {
                 value = this.evaluate(stmt.initializer);
-                // console.log("VIS VAR", stmt.initializer)
+                if (debug) console.log("VIS VAR", stmt.initializer)
                 this.environment.define(stmt.name.lexeme, value.type, value.nat);
             } else {
                 this.environment.define(stmt.name.lexeme, "void", undefined);
@@ -663,16 +887,16 @@
             if (this.processDied) return; // stop execution
 
             if (expr.ExprType === "call") {
-                console.log("VIS ASSIGN", expr)
+                if (debug) console.log("VIS ASSIGN", expr)
                 return this.visitCallExpr(expr);
             } else if (expr.ExprType === "get") {
-                console.log("VIS GET", expr)
+                if (debug) console.log("VIS GET", expr)
                 return this.visitGetExpr(expr);
             } else if (expr.ExprType === "set") {
-                console.log("VIS SET", expr)
+                if (debug) console.log("VIS SET", expr)
                 return this.visitSetExpr(expr);
             } else {
-                console.log("DDDDDDDD", expr)
+                if (debug) console.log("DDDDDDDD", expr)
                 let obj = this.evaluate(expr.value);
                 this.environment.assign(expr.name, obj.type, obj.nat);
                 return obj;
@@ -727,6 +951,7 @@
                 this.environment = environment;
 
                 for (let i = 0; i < statements.length; i++) {
+                    if (debug) console.log("EXEC BLOCK STATE", statements[i])
                     this.execute(statements[i]);
                 }
             } finally {
@@ -748,7 +973,7 @@
             }
 
             let fxn = callee;
-            console.log("CALLIN", fxn, expr.args)
+            if (debug) console.log("CALLIN", fxn, expr.args)
             if (fxn.type === "Function") {
                 while (args.length < fxn.nat.arity()) {
                     args.push(undefined);
@@ -758,7 +983,7 @@
                     this.handleError("SyntaxError", JSON.stringify(fxn.nat) + "\nCan only call functions and classes");
                 }
     
-                // console.log("RETURNED", fxn.nat.call(args))
+                // if (debug) console.log("RETURNED", fxn.nat.call(args))
                 return fxn.nat.call(args);
             } else if (fxn.type === "Class") {
                 while (args.length < fxn.nat.arity()) {
@@ -777,7 +1002,7 @@
         }
 
         visitFunctionStmt(stmt) {
-            let fxn = new JITLangFunction(stmt, this.environment, this);
+            let fxn = new JITLFunction(stmt, this.environment, this);
             this.environment.define(stmt.name.lexeme, "Function", fxn);
             return null;
         }
@@ -803,11 +1028,11 @@
 
             let methods = new Map();
             for (let method of stmt.methods) {
-                let fxn = new JITLangFunction(method, this.environment, this);
+                let fxn = new JITLFunction(method, this.environment, this);
                 methods.set(method.name.lexeme, fxn);
             }
 
-            let jitlClass = new JITLangClass(stmt.name.lexeme, methods, this);
+            let jitlClass = new JITLClass(stmt.name.lexeme, methods, this);
             this.environment.assign(stmt.name.lexeme, "Class", jitlClass);
 
             return null;
@@ -815,8 +1040,8 @@
 
         visitGetExpr(expr) {
             let object = this.evaluate(expr.object);
-            console.log("VIS GETTING", object)
-            if (object.nat instanceof JITLangInstance) {
+            if (debug) console.log("VIS GETTING", object)
+            if (object.nat instanceof JITLInstance) {
                 return object.nat.get(expr.name);
             }
 
@@ -826,7 +1051,7 @@
         visitSetExpr(expr) {
             let object = this.evaluate(expr.object);
 
-            if (!(object.nat instanceof JITLangInstance)) {
+            if (!(object.nat instanceof JITLInstance)) {
                 throw expr.name + " Only instances have fields";
             }
 
@@ -836,6 +1061,7 @@
         }
 
         execute(stmt) {
+            if (debug) console.log("EXEC", JSON.stringify(stmt))
             switch (stmt.StmtType) {
                 case "variable":
                     return this.visitVarStmt(stmt);
@@ -875,15 +1101,7 @@
         }
     }
 
-    if (typeof JITLang === "undefined") {
-        if (typeof window === "undefined") {
-            // node support
-            globalThis.JITLang = {};
-        } else {
-            // browser support
-            window.JITLang = {};
-        }
-    }
+    let JITLang = {};
 
     JITLang.createInterpreter = function(handleOutput, handleError) {
         return new Interpreter(handleOutput, handleError);
@@ -895,4 +1113,12 @@
         let interpreter = JITLang.createInterpreter();
         interpreter.eval(AST);
     };
+
+    if (typeof window === "undefined") {
+        // node support
+        module.exports = JITLang;
+    } else {
+        // browser support
+        window.jitlvm = JITLang;
+    }
 })();
